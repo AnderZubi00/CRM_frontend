@@ -34,7 +34,7 @@ function App() {
               <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
               <div className="flex items-center space-x-4">
                 <span className="text-gray-700">
-                  Bienvenido, <strong>{user.nombre}</strong>
+                  Bienvenido, <strong>{user.correo}</strong>
                 </span>
                 <button
                   onClick={handleLogout}
@@ -51,10 +51,10 @@ function App() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-4">Información del Usuario</h2>
               <div className="space-y-2">
-                <p><strong>ID:</strong> {user.id}</p>
-                <p><strong>Nombre:</strong> {user.nombre}</p>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Rol:</strong> {user.rol === 1 ? 'Administrador' : user.rol === 2 ? 'Empleado' : 'Cliente'}</p>
+                <p><strong>ID:</strong> {user.id_usuario}</p>
+                <p><strong>Correo:</strong> {user.correo}</p>
+                <p><strong>Rol:</strong> {user.id_rol === 1 ? 'Administrador' : user.id_rol === 2 ? 'Empleado' : 'Cliente'}</p>
+                {user.id_empleado && <p><strong>ID Empleado:</strong> {user.id_empleado}</p>}
               </div>
             </div>
           </div>

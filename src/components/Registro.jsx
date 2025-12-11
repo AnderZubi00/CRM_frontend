@@ -3,11 +3,11 @@ import api from '../services/api';
 
 function Registro({ onRegisterSuccess }) {
   const [formData, setFormData] = useState({
-    nombre: '',
-    email: '',
+    correo: '',
     contraseña: '',
     confirmarContraseña: '',
-    rol: 3 // Por defecto cliente
+    id_rol: 3, // Por defecto cliente
+    id_empleado: null // Opcional
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +17,7 @@ function Registro({ onRegisterSuccess }) {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'rol' ? parseInt(value) : value
+      [name]: name === 'id_rol' ? parseInt(value) : value
     }));
   };
 
@@ -55,11 +55,11 @@ function Registro({ onRegisterSuccess }) {
       // Limpiar formulario después de 2 segundos
       setTimeout(() => {
         setFormData({
-          nombre: '',
-          email: '',
+          correo: '',
           contraseña: '',
           confirmarContraseña: '',
-          rol: 3
+          id_rol: 3,
+          id_empleado: null
         });
         setSuccess(null);
       }, 2000);
@@ -80,30 +80,14 @@ function Registro({ onRegisterSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre de Usuario
-            </label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Juan Pérez"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="correo" className="block text-sm font-medium text-gray-700 mb-2">
               Correo Electrónico
             </label>
             <input
               type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              id="correo"
+              name="correo"
+              value={formData.correo}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="usuario@ejemplo.com"
@@ -112,13 +96,13 @@ function Registro({ onRegisterSuccess }) {
           </div>
 
           <div>
-            <label htmlFor="rol" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="id_rol" className="block text-sm font-medium text-gray-700 mb-2">
               Rol
             </label>
             <select
-              id="rol"
-              name="rol"
-              value={formData.rol}
+              id="id_rol"
+              name="id_rol"
+              value={formData.id_rol}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >

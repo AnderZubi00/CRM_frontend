@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { login } from '../services/api';
 
 function Login({ onLoginSuccess }) {
-  const [email, setEmail] = useState('');
+  const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -13,7 +13,7 @@ function Login({ onLoginSuccess }) {
     setError(null);
 
     try {
-      const response = await login(email, contraseña);
+      const response = await login(correo, contraseña);
       if (response.token) {
         if (onLoginSuccess) {
           onLoginSuccess(response.user);
@@ -38,14 +38,14 @@ function Login({ onLoginSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="correo" className="block text-sm font-medium text-gray-700 mb-2">
               Correo Electrónico
             </label>
             <input
               type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="correo"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="usuario@ejemplo.com"
               required

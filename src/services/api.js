@@ -43,12 +43,12 @@ api.interceptors.response.use(
 
 /**
  * Iniciar sesión
- * @param {string} email - Email del usuario
+ * @param {string} correo - Correo del usuario
  * @param {string} contraseña - Contraseña del usuario
  * @returns {Promise} Datos del usuario y token
  */
-export const login = async (email, contraseña) => {
-  const res = await api.post("/api/auth/login", { email, contraseña });
+export const login = async (correo, contraseña) => {
+  const res = await api.post("/api/auth/login", { correo, contraseña });
   if (res.data.token) {
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("user", JSON.stringify(res.data.user));
