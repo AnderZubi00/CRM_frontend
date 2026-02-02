@@ -1,98 +1,92 @@
 import { useState } from 'react';
+import Header from './components/Header';
 import Login from './components/Login';
 import Registro from './components/Registro';
+import DashboardAdmin from './components/DashboardAdmin';
+import DashboardEmpleado from './components/DashboardEmpleado';
+import DashboardCliente from './components/DashboardCliente';
 import { getCurrentUser, logout } from './services/api';
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login' o 'registro'
+  const [currentView, setCurrentView] = useState('home'); // 'home' o 'registro'
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState(getCurrentUser());
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
+    setShowLoginModal(false);
     setCurrentView('dashboard');
   };
 
   const handleRegisterSuccess = () => {
-    // Después de registrar, cambiar a login
-    setCurrentView('login');
+    setCurrentView('home');
+    setShowLoginModal(false);
   };
 
   const handleLogout = () => {
     logout();
     setUser(null);
-    setCurrentView('login');
+    setCurrentView('home');
   };
 
-  // Si el usuario está logueado, mostrar dashboard
+  const handleGoToRegister = () => {
+    setShowLoginModal(false);
+    setCurrentView('registro');
+  };
+
+  // Si el usuario está logueado, mostrar el dashboard correspondiente a su rol
   if (user && currentView === 'dashboard') {
-    return (
-      <div className="min-h-screen bg-gray-100">
-        <nav className="bg-white shadow-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">
-                  Bienvenido, <strong>{user.correo}</strong>
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4">Información del Usuario</h2>
-              <div className="space-y-2">
-                <p><strong>ID:</strong> {user.id_usuario}</p>
-                <p><strong>Correo:</strong> {user.correo}</p>
-                <p><strong>Rol:</strong> {user.id_rol === 1 ? 'Administrador' : user.id_rol === 2 ? 'Empleado' : 'Cliente'}</p>
-                {user.id_empleado && <p><strong>ID Empleado:</strong> {user.id_empleado}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    const esAdmin = user.id_rol === 1;
+    const esEmpleado = user.id_rol === 2;
+    const esCliente = user.id_rol === 3;
+
+    if (esAdmin) return <DashboardAdmin user={user} onLogout={handleLogout} />;
+    if (esEmpleado) return <DashboardEmpleado user={user} onLogout={handleLogout} />;
+    if (esCliente) return <DashboardCliente user={user} onLogout={handleLogout} />;
   }
 
-  // Vista de login o registro
+  // Vista principal: solo Header (y registro si aplica)
   return (
-    <div>
-      <div className="flex justify-center mt-4 space-x-4">
-        <button
-          onClick={() => setCurrentView('login')}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            currentView === 'login'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Iniciar Sesión
-        </button>
-        <button
-          onClick={() => setCurrentView('registro')}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            currentView === 'registro'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Registrarse
-        </button>
-      </div>
+    <div className="w-full min-w-full">
+      <Header onOpenLogin={() => setShowLoginModal(true)} />
 
-      {currentView === 'login' ? (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <Registro onRegisterSuccess={handleRegisterSuccess} />
+      {/* Modal de registro (mismo estilo que login: overlay oscuro + formulario centrado) */}
+      {currentView === 'registro' && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => e.target === e.currentTarget && setCurrentView('home')}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="registro-title"
+        >
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <Registro
+              onClose={() => setCurrentView('home')}
+              onRegisterSuccess={handleRegisterSuccess}
+              onGoToLogin={() => { setCurrentView('home'); setShowLoginModal(true); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal de login */}
+      {showLoginModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => e.target === e.currentTarget && setShowLoginModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-title"
+        >
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <Login
+              onClose={() => setShowLoginModal(false)}
+              onLoginSuccess={handleLoginSuccess}
+              onGoToRegister={handleGoToRegister}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
