@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import Header from './components/Header';
 import Login from './components/Login';
 import Registro from './components/Registro';
 import DashboardAdmin from './components/DashboardAdmin';
 import DashboardEmpleado from './components/DashboardEmpleado';
 import DashboardCliente from './components/DashboardCliente';
-import { getCurrentUser, logout } from './services/api';
+import { getCurrentUser, logout, verifyAuth } from "./services/api";
+import { useEffect, useState } from "react";
 import './App.css';
 
 function App() {
@@ -18,7 +18,33 @@ function App() {
     setShowLoginModal(false);
     setCurrentView('dashboard');
   };
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+      setUser(null);
+      setCurrentView("home");
+    };
 
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    // Revalidar token al refrescar (F5)
+    const token = localStorage.getItem("token");
+    if (token) {
+      verifyAuth()
+        .then((data) => {
+          // Ajusta según lo que devuelva tu /api/auth/verify
+          // Si devuelve { user: {...} }:
+          const verifiedUser = data.user ?? data;
+          setUser(verifiedUser);
+          setCurrentView("dashboard");
+        })
+        .catch(() => {
+          handleUnauthorized();
+        });
+    }
+
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
   const handleRegisterSuccess = () => {
     setCurrentView('home');
     setShowLoginModal(false);

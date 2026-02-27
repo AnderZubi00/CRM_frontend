@@ -27,13 +27,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      // Redirigir al login si es necesario
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
+  // No fuerces logout aquí: en tu app sin router, esto provoca “me echa al F5”
+  // Deja que App.jsx decida qué hacer.
+  window.dispatchEvent(new Event("auth:unauthorized"));
+
     }
     return Promise.reject(error);
   }
@@ -187,6 +184,27 @@ export const getCurrentUser = () => {
 // Función auxiliar para verificar si el usuario está autenticado
 export const isAuthenticated = () => {
   return !!localStorage.getItem("token");
+};
+
+// ==================== EMPLEADOS ====================
+
+/**
+ * Obtener todos los empleados
+ * @returns {Promise} Lista de empleados
+ */
+export const getEmpleados = async () => {
+  const res = await api.get("/api/empleados");
+  return res.data;
+};
+
+/**
+ * Crear un nuevo empleado
+ * @param {Object} empleadoData - Datos del empleado
+ * @returns {Promise} Empleado creado
+ */
+export const createEmpleado = async (empleadoData) => {
+  const res = await api.post("/api/empleados", empleadoData);
+  return res.data;
 };
 
 export default api;
