@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-function Header({ onOpenLogin }) {
+function Header({ onOpenLogin, onNavigate }) {
   return (
     <header className="sticky top-0 left-0 right-0 z-50 w-full min-w-full bg-background border-b shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,16 +15,16 @@ function Header({ onOpenLogin }) {
 
           {/* Navegación */}
           <nav className="hidden sm:flex items-center gap-1">
-            <Button variant="ghost" asChild>
-              <a href="#inicio">Inicio</a>
+            <Button variant="ghost" onClick={() => onNavigate?.('home')}>
+              <a href="#home">Inicio</a>
             </Button>
             <Button variant="ghost" asChild>
               <a href="#productos">Productos</a>
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" onClick={() => onNavigate?.('sobre-nosotros')}>
               <a href="#sobre-nosotros">Sobre Nosotros</a>
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" onClick={() => onNavigate?.('contacto')}>
               <a href="#contacto">Contacto</a>
             </Button>
           </nav>
