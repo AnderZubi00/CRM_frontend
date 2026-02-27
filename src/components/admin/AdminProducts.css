@@ -1,0 +1,49 @@
+.admin-products .table-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  overflow: hidden; /* recorta el header/filas al radio */
+}
+
+.admin-products .table-scroll {
+  overflow-x: auto;
+}
+
+.admin-products table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 0; /* el borde lo lleva el card */
+}
+
+.admin-products thead th {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-products th,
+.admin-products td {
+  padding: 8px 10px !important;
+  vertical-align: middle;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-products tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-products tbody tr:hover td {
+  background: #fafafa;
+}
+
+/* Compacta botones dentro de Acciones sin tocar estilos globales */
+.admin-products td > div {
+  gap: 6px !important;
+}
+
+/* Ajuste de padding en Descripción para que no quede “corrida” */
+.admin-products th:nth-child(5),
+.admin-products td:nth-child(5) {
+  padding-left: 10px !important;
+}

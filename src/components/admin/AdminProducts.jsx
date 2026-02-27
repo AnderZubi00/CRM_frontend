@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
+import './AdminProducts.css';
+import { _round } from "gsap/gsap-core";
 
 function formatPrice(value) {
   const n = Number(value);
@@ -84,18 +86,21 @@ export default function AdminProducts() {
 
   async function loadLookups() {
     try {
-      // Ajusta estas rutas si tus endpoints se llaman distinto
       const [catRes, provRes] = await Promise.all([
         api.get("/api/categorias"),
         api.get("/api/proveedores"),
       ]);
+
       setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
       setProveedores(Array.isArray(provRes.data) ? provRes.data : []);
     } catch (e) {
       console.error("Error cargando lookups:", e);
-      console.log("Categorias:", catRes.data);
-      console.log("Proveedores:", provRes.data);
-      setError((prev) => prev || "No se pudieron cargar categorías/proveedores.");
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data ||
+        e?.message ||
+        "Error desconocido cargando categorías/proveedores";
+      setError(`No se pudieron cargar categorías/proveedores. Detalle: ${msg}`);
     }
   }
 
@@ -252,7 +257,7 @@ export default function AdminProducts() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="admin-products" style={{ padding: 16 }}>
       <div
         style={{
           display: "flex",
@@ -300,76 +305,78 @@ export default function AdminProducts() {
       ) : items.length === 0 ? (
         <div>No hay productos.</div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              tableLayout: "fixed",
-            }}
-          >
-            <colgroup>
-              <col style={{ width: 70 }} />
-              <col style={{ width: 260 }} />
-              <col style={{ width: 120 }} />
-              <col style={{ width: 110 }} />
-              <col style={{ width: 320 }} />
-              <col style={{ width: 220 }} />
-            </colgroup>
+        <div className="table-card">
+          <div className="table-scroll">
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                tableLayout: "fixed",
+              }}
+            >
+              <colgroup>
+                <col style={{ width: 70 }} />
+                <col style={{ width: 220 }} />
+                <col style={{ width: 110 }} />
+                <col style={{ width: 90 }} />
+                <col />
+                <col style={{ width: 180 }} />
+              </colgroup>
 
-            <thead>
-              <tr>
-                <Th>ID</Th>
-                <Th>Nombre</Th>
-                <Th style={{ textAlign: "right" }}>Precio</Th>
-                <Th style={{ textAlign: "right" }}>Stock</Th>
-                <Th style={{ paddingLeft: 16 }}>Descripción</Th>
-                <Th style={{ width: 220 }}>Acciones</Th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {items.map((p) => (
-                <tr key={p.id_producto}>
-                  <Td>{p.id_producto}</Td>
-                  <Td style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {p.nombre}
-                  </Td>
-                  <Td style={{ textAlign: "right" }}>{formatPrice(p.precio)}</Td>
-                  <Td style={{ textAlign: "right" }}>
-                    {p.stock == null ? "-" : formatInt(p.stock)}
-                  </Td>
-                  <Td
-                    style={{
-                      paddingLeft: 16,
-                      whiteSpace: "normal",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {p.descripcion ?? "-"}
-                  </Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Btn
-                        onClick={() => openEdit(p)}
-                        disabled={saving}
-                        variant="default"
-                      >
-                        Editar
-                      </Btn>
-                      <Btn
-                        onClick={() => onDelete(p)}
-                        disabled={saving}
-                        variant="danger"
-                      >
-                        Eliminar
-                      </Btn>
-                    </div>
-                  </Td>
+              <thead>
+                <tr>
+                  <Th>ID</Th>
+                  <Th>Nombre</Th>
+                  <Th style={{ textAlign: "right" }}>Precio</Th>
+                  <Th style={{ textAlign: "right" }}>Stock</Th>
+                  <Th style={{ paddingLeft: 16 }}>Descripción</Th>
+                  <Th style={{ width: 220 }}>Acciones</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {items.map((p) => (
+                  <tr key={p.id_producto}>
+                    <Td>{p.id_producto}</Td>
+                    <Td style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {p.nombre}
+                    </Td>
+                    <Td style={{ textAlign: "right" }}>{formatPrice(p.precio)}</Td>
+                    <Td style={{ textAlign: "right" }}>
+                      {p.stock == null ? "-" : formatInt(p.stock)}
+                    </Td>
+                    <Td
+                      style={{
+                        paddingLeft: 16,
+                        whiteSpace: "normal",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {p.descripcion ?? "-"}
+                    </Td>
+                    <Td>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <Btn
+                          onClick={() => openEdit(p)}
+                          disabled={saving}
+                          variant="default"
+                        >
+                          Editar
+                        </Btn>
+                        <Btn
+                          onClick={() => onDelete(p)}
+                          disabled={saving}
+                          variant="danger"
+                        >
+                          Eliminar
+                        </Btn>
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

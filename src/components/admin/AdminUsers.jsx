@@ -1,11 +1,14 @@
 import { Fragment, useEffect, useState } from "react";
 import { getUsers, createUser } from "@/services/api";
+import api, { getCurrentUser } from "@/services/api";
 
 function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
   const [openGroups, setOpenGroups] = useState({ 1: true, 2: false, 3: false });
+  const currentUser = getCurrentUser?.() || null;
+  const currentUserId = currentUser?.id_usuario ?? currentUser?.id ?? null;
   // Modal + form
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -113,10 +116,40 @@ function AdminUsers() {
     return String(idRol ?? "-");
   };
   const groups = [
-    { rol: 1, title: "Administradores" },
+    { rol: 1, title: "Administradores", },
     { rol: 2, title: "Empleados" },
     { rol: 3, title: "Clientes" },
   ];
+  async function handleDelete(user) {
+    const id = user.id_usuario ?? user.id;
+    if (!id) return;
+
+    if (currentUserId != null && Number(id) === Number(currentUserId)) {
+      setFormError("No puedes eliminar tu propio usuario.");
+      return;
+    }
+
+    const ok = window.confirm(
+      `¿Eliminar el usuario "${user.correo ?? user.email ?? ""}" (ID ${id})?`
+    );
+    if (!ok) return;
+
+    try {
+      setSaving(true);
+      setFormError("");
+      await api.delete(`/api/users/${id}`);
+      await loadUsers();
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Error eliminando usuario";
+      setFormError(msg);
+    } finally {
+      setSaving(false);
+    }
+  }
   return (
     <div className="bg-card rounded-2xl border shadow-xl p-6">
       <div className="flex items-center justify-between gap-4">
@@ -152,18 +185,18 @@ function AdminUsers() {
               <col style={{ width: 200 }} />
               <col style={{ width: 100 }} />
               <col style={{ width: 220 }} />
+              <col style={{ width: 160 }} />
             </colgroup>
 
             <thead className="bg-muted/40">
               <tr>
-                <th className="text-center p-3">ID</th>
-
+                <th className="text-center p-3">Rol</th>
                 {/* Correo: encabezado centrado dentro de un bloque fijo */}
                 <th className="p-3">
                   <div className="mx-auto w-[320px] text-center">Correo</div>
                 </th>
-
-                <th className="text-center p-3">Rol</th>
+                <th className="text-center p-3">Id</th>
+                <th className="text-center p-3">Acciones</th>
               </tr>
             </thead>
 
@@ -179,32 +212,38 @@ function AdminUsers() {
 
                 return (
                   <Fragment key={g.rol}>
+                    {/* Fila separadora (accordion) */}
                     <tr
                       className="border-t bg-muted/20 cursor-pointer select-none"
                       onClick={() =>
                         setOpenGroups((prev) => ({ ...prev, [g.rol]: !prev[g.rol] }))
                       }
                     >
-                      <td className="p-3 font-semibold text-foreground" colSpan={3}>
+                      {/* Rol (aquí va el título + flecha) */}
+                      <td className="p-3 font-semibold text-foreground">
                         <div className="flex items-center justify-between">
-                          <div>
-                            {g.title}{" "}
-                            <span className="text-muted-foreground font-normal">
-                              ({groupUsers.length})
-                            </span>
+                          <div style={{ paddingLeft: 58}}>
+                            {g.title} <span className="text-muted-foreground font-normal">({groupUsers.length})</span>
                           </div>
-
-                          <span className="text-muted-foreground">
-                            {isOpen ? "▾" : "▸"}
-                          </span>
+                          <span className="text-muted-foreground">{isOpen ? "▾" : "▸"}</span>
                         </div>
                       </td>
+
+                      {/* Correo vacío */}
+                      <td className="p-3" />
+
+                      {/* ID vacío */}
+                      <td className="p-3" />
+
+                      {/* Acciones vacío */}
+                      <td className="p-3" />
                     </tr>
 
+                    {/* Filas del grupo */}
                     {isOpen &&
                       groupUsers.map((u) => (
                         <tr key={u.id_usuario ?? u.id} className="border-t">
-                          <td className="p-3 text-center">{u.id_usuario ?? u.id}</td>
+                          <td className="p-3 text-center">{rolLabel(u.id_rol ?? u.rol)}</td>
 
                           <td className="p-3">
                             <div
@@ -215,7 +254,21 @@ function AdminUsers() {
                             </div>
                           </td>
 
-                          <td className="p-3 text-center">{rolLabel(u.id_rol ?? u.rol)}</td>
+                          <td className="p-3 text-center">{u.id_usuario ?? u.id}</td>
+
+                          <td className="p-3 text-center">
+                            <button
+                              type="button"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                handleDelete(u);
+                              }}
+                              className="px-3 py-1 rounded-lg border hover:bg-muted transition"
+                              disabled={saving}
+                            >
+                              Eliminar
+                            </button>
+                          </td>
                         </tr>
                       ))}
                   </Fragment>
@@ -224,7 +277,7 @@ function AdminUsers() {
 
               {users.length === 0 && (
                 <tr className="border-t">
-                  <td className="p-3 text-muted-foreground text-center" colSpan={3}>
+                  <td className="p-3 text-muted-foreground text-center" colSpan={4}>
                     No hay usuarios para mostrar.
                   </td>
                 </tr>
