@@ -1,4 +1,9 @@
 import Header from './components/Header';
+import Home from './components/Home';
+import SobreNosotros from './components/SobreNosotros';
+import Contact from './components/Contact';
+import Footer from './components/Footer';
+import Politica from './components/Politica';
 import Login from './components/Login';
 import Registro from './components/Registro';
 import DashboardAdmin from './components/DashboardAdmin';
@@ -75,7 +80,19 @@ function App() {
   // Vista principal: solo Header (y registro si aplica)
   return (
     <div className="w-full min-w-full">
-      <Header onOpenLogin={() => setShowLoginModal(true)} />
+      <Header
+        onOpenLogin={() => setShowLoginModal(true)}
+        onNavigate={(view) => setCurrentView(view)}
+      />
+
+      {currentView === 'home' && <Home />}
+      {currentView === 'sobre-nosotros' && <SobreNosotros />}
+      {currentView === 'contacto' && <Contact />}
+      {currentView === 'politica-privacidad' && <Politica />}
+      <Footer
+        onNavigate={(view) => setCurrentView(view)}
+      />
+
 
       {/* Modal de registro (mismo estilo que login: overlay oscuro + formulario centrado) */}
       {currentView === 'registro' && (
