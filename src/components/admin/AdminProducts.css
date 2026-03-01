@@ -28,6 +28,10 @@
   vertical-align: middle;
   border-bottom: 1px solid #eee;
 }
+/* Columna Stock = 6ª columna (según tu tabla actual) */
+.admin-products td:nth-child(6) {
+  padding-right: 20px !important; /* ajusta el número */
+}
 
 .admin-products tbody tr:last-child td {
   border-bottom: none;
@@ -46,4 +50,15 @@
 .admin-products th:nth-child(5),
 .admin-products td:nth-child(5) {
   padding-left: 10px !important;
+}
+/* Resaltado de columna activa (lo aplicaremos con una clase en la tabla) */
+.admin-products table.col-id th:nth-child(1),
+.admin-products table.col-id td:nth-child(1),
+.admin-products table.col-nombre th:nth-child(2),
+.admin-products table.col-nombre td:nth-child(2),
+.admin-products table.col-precio th:nth-child(5),
+.admin-products table.col-precio td:nth-child(5),
+.admin-products table.col-stock th:nth-child(6),
+.admin-products table.col-stock td:nth-child(6) {
+  background: #f3f4f6;
 }

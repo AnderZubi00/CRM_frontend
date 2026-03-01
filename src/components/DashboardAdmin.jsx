@@ -1,13 +1,21 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import AdminLayout from "./admin/AdminLayout";
 import AdminHome from "./admin/AdminHome";
 import AdminUsers from "./admin/AdminUsers";
 import AdminProducts from "./admin/AdminProducts";
 import AdminReports from "./admin/AdminReports";
 import AdminEmployees from "./admin/AdminEmployees";
+import AdminCategories from "./admin/AdminCategories";
+import AdminSuppliers from "./admin/AdminSuppliers";
+
 
 function DashboardAdmin({ user, onLogout }) {
-  const [section, setSection] = useState("home"); // home | users | products | reports
+  const [section, setSection] = useState(() => {
+    return localStorage.getItem("adminSection") || "home";
+  });
+  useEffect(() => {
+    localStorage.setItem("adminSection", section);
+  }, [section]);
 
   const content = useMemo(() => {
     switch (section) {
@@ -15,6 +23,10 @@ function DashboardAdmin({ user, onLogout }) {
         return <AdminUsers user={user} />;
       case "products":
         return <AdminProducts user={user} />;
+      case "categories":
+        return <AdminCategories />
+      case "Suppliers":
+        return <AdminSuppliers />
       case "employees":
         return <AdminEmployees />;
       case "reports":
