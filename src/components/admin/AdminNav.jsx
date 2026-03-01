@@ -49,13 +49,25 @@ function AdminNav({ user, onLogout, section, onSectionChange }) {
                                 onClick={() => onSectionChange("products")}
                             >
                                 Productos
-                                </NavItem>
+                            </NavItem>
+                            <NavItem
+                                active={section === "categories"}
+                                onClick={() => onSectionChange("categories")}
+                            >
+                                Categorías
+                            </NavItem>
+                            <NavItem
+                                active={section === "Suppliers"}
+                                onClick={() => onSectionChange("Suppliers")}
+                            >
+                                Proveedores
+                            </NavItem>
                             <NavItem
                                 active={section === "employees"}
                                 onClick={() => onSectionChange("employees")}
                             >
                                 Empleados
-                                </NavItem>
+                            </NavItem>
                             <NavItem
                                 active={section === "reports"}
                                 onClick={() => onSectionChange("reports")}

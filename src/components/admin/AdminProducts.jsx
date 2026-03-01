@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import './AdminProducts.css';
-import { _round } from "gsap/gsap-core";
 
 function formatPrice(value) {
   const n = Number(value);
@@ -41,8 +40,131 @@ export default function AdminProducts() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
 
+  const initialPrefs = (() => {
+    try {
+      const raw = localStorage.getItem("adminProductsPrefs");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  })();
+
+  const [q, setQ] = useState(typeof initialPrefs.q === "string" ? initialPrefs.q : "");
+  const [catFilter, setCatFilter] = useState(
+    typeof initialPrefs.catFilter === "string" ? initialPrefs.catFilter : ""
+  );
+  const [provFilter, setProvFilter] = useState(
+    typeof initialPrefs.provFilter === "string" ? initialPrefs.provFilter : ""
+  );
+  const [sortKey, setSortKey] = useState(
+    typeof initialPrefs.sortKey === "string" ? initialPrefs.sortKey : "id"
+  );
+  const [sortDir, setSortDir] = useState(
+    initialPrefs.sortDir === "asc" || initialPrefs.sortDir === "desc"
+      ? initialPrefs.sortDir
+      : "asc"
+  );
+  const [pageSize, setPageSize] = useState(25);
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("adminProductsPrefs");
+      if (!raw) return;
+      const prefs = JSON.parse(raw);
+
+      if (typeof prefs.q === "string") setQ(prefs.q);
+      if (typeof prefs.catFilter === "string") setCatFilter(prefs.catFilter);
+      if (typeof prefs.provFilter === "string") setProvFilter(prefs.provFilter);
+      if (typeof prefs.sortKey === "string") setSortKey(prefs.sortKey);
+      if (prefs.sortDir === "asc" || prefs.sortDir === "desc") setSortDir(prefs.sortDir);
+
+    } catch {
+      // si está corrupto, lo ignoramos
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "adminProductsPrefs",
+        JSON.stringify({ q, catFilter, provFilter, sortKey, sortDir })
+      );
+    } catch { }
+  }, [q, catFilter, provFilter, sortKey, sortDir]);
+  const filteredItems = useMemo(() => {
+    const query = q.trim().toLowerCase();
+
+    const out = items.filter((p) => {
+      if (catFilter && String(p.id_categoria) !== String(catFilter)) return false;
+      if (provFilter && String(p.id_proveedor) !== String(provFilter)) return false;
+
+      if (!query) return true;
+
+      const n = (p.nombre ?? "").toLowerCase();
+      const d = (p.descripcion ?? "").toLowerCase();
+      return n.includes(query) || d.includes(query);
+    });
+
+    const dir = sortDir === "asc" ? 1 : -1;
+
+    out.sort((a, b) => {
+      switch (sortKey) {
+        case "nombre": {
+          const A = (a.nombre ?? "").toLowerCase();
+          const B = (b.nombre ?? "").toLowerCase();
+          return A.localeCompare(B) * dir;
+        }
+        case "precio": {
+          const A = Number(a.precio ?? 0);
+          const B = Number(b.precio ?? 0);
+          return (A - B) * dir;
+        }
+        case "stock": {
+          const A = Number(a.stock ?? -1);
+          const B = Number(b.stock ?? -1);
+          return (A - B) * dir;
+        }
+        case "id":
+        default: {
+          const A = Number(a.id_producto ?? 0);
+          const B = Number(b.id_producto ?? 0);
+          return (A - B) * dir;
+        }
+      }
+    });
+
+    return out;
+  }, [items, q, catFilter, provFilter, sortKey, sortDir]);
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  }, [filteredItems.length, pageSize]);
+
+  useEffect(() => {
+    // Si cambian filtros/orden/tamaño, aseguramos page válida
+    setPage((p) => Math.min(Math.max(1, p), totalPages));
+  }, [totalPages]);
+
+  const pagedItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [q, catFilter, provFilter]);
+
   const [categorias, setCategorias] = useState([]);
   const [proveedores, setProveedores] = useState([]);
+  const categoriaMap = useMemo(
+    () => new Map(categorias.map((c) => [Number(c.id_categoria), c.nombre])),
+    [categorias]
+  );
+
+  const proveedorMap = useMemo(
+    () => new Map(proveedores.map((p) => [Number(p.id_proveedor), p.nombre])),
+    [proveedores]
+  );
 
   // Modal / form
   const [open, setOpen] = useState(false);
@@ -153,6 +275,7 @@ export default function AdminProducts() {
     resetForm();
     setFieldErrors({});
     setError("");
+    loadLookups();
     setOpen(true);
   }
 
@@ -169,8 +292,10 @@ export default function AdminProducts() {
     });
     setFieldErrors({});
     setError("");
+    loadLookups();
     setOpen(true);
   }
+
 
   function closeModal() {
     if (saving) return;
@@ -249,11 +374,66 @@ export default function AdminProducts() {
       await api.delete(`/api/productos/${p.id_producto}`);
       await load();
     } catch (e) {
-      setError(
+      const status = e?.response?.status;
+      const msg =
         e?.response?.data?.message ||
-        "No se pudo eliminar el producto. Revisa backend."
-      );
+        e?.response?.data ||
+        e?.message ||
+        "No se pudo eliminar el producto. Revisa backend.";
+
+      // 409 = conflicto (lo tratamos como aviso suave)
+      if (status === 409) setError(`⚠️ ${msg}`);
+      else setError(String(msg));
     }
+  }
+  function toggleSort(key) {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir(key === "precio" || key === "stock" ? "desc" : "asc");
+      return;
+    }
+
+    // misma columna -> alternar
+    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+  }
+
+  function exportCsv() {
+    const rows = filteredItems.map((p) => ({
+      ID: p.id_producto ?? "",
+      Nombre: p.nombre ?? "",
+      Categoria: categoriaMap.get(Number(p.id_categoria)) ?? "",
+      Proveedor: proveedorMap.get(Number(p.id_proveedor)) ?? "",
+      Precio: formatPrice(p.precio),
+      Stock: p.stock == null ? "" : formatInt(p.stock),
+      Descripcion: (p.descripcion ?? "").replace(/\r?\n/g, " "),
+    }));
+
+    const headers = Object.keys(rows[0] || {
+      ID: "", Nombre: "", Categoria: "", Proveedor: "", Precio: "", Stock: "", Descripcion: ""
+    });
+
+    const escape = (v) => {
+      const s = String(v ?? "");
+      const needs = /[",;\n]/.test(s);
+      const safe = s.replace(/"/g, '""');
+      return needs ? `"${safe}"` : safe;
+    };
+
+    const csv = [
+      headers.join(";"),
+      ...rows.map((r) => headers.map((h) => escape(r[h])).join(";")),
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `productos_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -276,7 +456,10 @@ export default function AdminProducts() {
 
         <div style={{ display: "flex", gap: 8 }}>
           <Btn onClick={load} disabled={loading || saving} variant="default">
-            Recargar
+            Actualizar inventario
+          </Btn>
+          <Btn onClick={exportCsv} disabled={loading || saving || filteredItems.length === 0} variant="default">
+            Exportar CSV
           </Btn>
           <Btn onClick={openCreate} disabled={saving} variant="primary">
             + Nuevo
@@ -284,11 +467,120 @@ export default function AdminProducts() {
         </div>
       </div>
 
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.2fr 1fr 1fr",
+          gap: 10,
+          marginBottom: 12,
+        }}
+      >
+        <div style={{ display: "grid", gap: 6 }}>
+          <span style={{ fontSize: 13, opacity: 0.8 }}>Buscar Producto</span>
+          <TextInput
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Nombre o descripción..."
+          />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <span style={{ fontSize: 13, opacity: 0.8 }}>Categoría</span>
+          <Select value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
+            <option value="">Todas</option>
+            {categorias.map((c) => (
+              <option key={c.id_categoria} value={c.id_categoria}>
+                {c.nombre}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <span style={{ fontSize: 13, opacity: 0.8 }}>Proveedor</span>
+          <Select value={provFilter} onChange={(e) => setProvFilter(e.target.value)}>
+            <option value="">Todos</option>
+            {proveedores.map((p) => (
+              <option key={p.id_proveedor} value={p.id_proveedor}>
+                {p.nombre}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          marginBottom: 12,
+        }}
+      >
+        <div style={{ fontSize: 13, opacity: 0.75 }}>
+          Mostrando <strong>{filteredItems.length}</strong> de <strong>{items.length}</strong> productos
+        </div>
+
+        <Btn
+          variant="default"
+          type="button"
+          onClick={() => {
+            setQ("");
+            setCatFilter("");
+            setProvFilter("");
+          }}
+          disabled={!q && !catFilter && !provFilter}
+        >
+          Limpiar filtros
+        </Btn>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          marginBottom: 12,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 10,
+            marginBottom: 12,
+          }}
+        >
+          <span style={{ fontSize: 13, opacity: 0.8 }}>
+            Página <strong>{page}</strong> de <strong>{totalPages}</strong>
+          </span>
+
+          <Btn
+            type="button"
+            variant="default"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+          >
+            Anterior
+          </Btn>
+
+          <Btn
+            type="button"
+            variant="default"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+          >
+            Siguiente
+          </Btn>
+        </div>
+      </div>
+
       {error ? (
         <div
           style={{
-            background: "#ffe8e8",
-            border: "1px solid #ffb3b3",
+            background: error.startsWith("⚠️") ? "#fff7ed" : "#ffe8e8",
+            border: error.startsWith("⚠️") ? "1px solid #fdba74" : "1px solid #ffb3b3",
             padding: 10,
             borderRadius: 8,
             marginBottom: 12,
@@ -308,6 +600,17 @@ export default function AdminProducts() {
         <div className="table-card">
           <div className="table-scroll">
             <table
+              className={
+                sortKey === "id"
+                  ? "col-id"
+                  : sortKey === "nombre"
+                    ? "col-nombre"
+                    : sortKey === "precio"
+                      ? "col-precio"
+                      : sortKey === "stock"
+                        ? "col-stock"
+                        : ""
+              }
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
@@ -315,36 +618,105 @@ export default function AdminProducts() {
               }}
             >
               <colgroup>
-                <col style={{ width: 70 }} />
-                <col style={{ width: 220 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 90 }} />
-                <col />
-                <col style={{ width: 180 }} />
+                <col style={{ width: 70 }} />   {/* ID */}
+                <col style={{ width: 220 }} />  {/* Nombre */}
+                <col style={{ width: 140 }} />  {/* Categoría */}
+                <col style={{ width: 160 }} />  {/* Proveedor */}
+                <col style={{ width: 110 }} />  {/* Precio */}
+                <col style={{ width: 90 }} />   {/* Stock */}
+                <col />                         {/* Descripción */}
+                <col style={{ width: 180 }} />  {/* Acciones */}
               </colgroup>
 
               <thead>
                 <tr>
-                  <Th>ID</Th>
-                  <Th>Nombre</Th>
-                  <Th style={{ textAlign: "right" }}>Precio</Th>
-                  <Th style={{ textAlign: "right" }}>Stock</Th>
+                  <th
+                    onClick={() => toggleSort("id")}
+                    style={{
+                      textAlign: "left",
+                      borderBottom: "1px solid #ddd",
+                      padding: "10px 8px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      background: sortKey === "id" ? "#f3f4f6" : "#f9fafb",
+                    }}
+                  >
+                    ID{sortKey === "id" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                  </th>
+
+                  <th
+                    onClick={() => toggleSort("nombre")}
+                    style={{
+                      textAlign: "left",
+                      borderBottom: "1px solid #ddd",
+                      padding: "10px 8px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      background: sortKey === "nombre" ? "#f3f4f6" : "#f9fafb",
+                    }}
+                  >
+                    Nombre{sortKey === "nombre" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                  </th>
+
+                  <Th>Categoría</Th>
+                  <Th>Proveedor</Th>
+
+                  <th
+                    onClick={() => toggleSort("precio")}
+                    style={{
+                      textAlign: "right",
+                      borderBottom: "1px solid #ddd",
+                      padding: "10px 8px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      background: sortKey === "precio" ? "#f3f4f6" : "#f9fafb",
+                    }}
+                  >
+                    Precio{sortKey === "precio" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                  </th>
+
+                  <th
+                    onClick={() => toggleSort("stock")}
+                    style={{
+                      textAlign: "right",
+                      borderBottom: "1px solid #ddd",
+                      padding: "10px 8px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      background: sortKey === "stock" ? "#f3f4f6" : "#f9fafb",
+                    }}
+                  >
+                    Stock{sortKey === "stock" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                  </th>
+
                   <Th style={{ paddingLeft: 16 }}>Descripción</Th>
                   <Th style={{ width: 220 }}>Acciones</Th>
                 </tr>
               </thead>
 
               <tbody>
-                {items.map((p) => (
+                {pagedItems.map((p) => (
                   <tr key={p.id_producto}>
                     <Td>{p.id_producto}</Td>
-                    <Td style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+
+                    <Td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {p.nombre}
                     </Td>
+
+                    <Td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {categoriaMap.get(Number(p.id_categoria)) ?? `#${p.id_categoria ?? "-"}`}
+                    </Td>
+
+                    <Td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {proveedorMap.get(Number(p.id_proveedor)) ?? `#${p.id_proveedor ?? "-"}`}
+                    </Td>
+
                     <Td style={{ textAlign: "right" }}>{formatPrice(p.precio)}</Td>
+
                     <Td style={{ textAlign: "right" }}>
                       {p.stock == null ? "-" : formatInt(p.stock)}
                     </Td>
+
                     <Td
                       style={{
                         paddingLeft: 16,
@@ -354,20 +726,13 @@ export default function AdminProducts() {
                     >
                       {p.descripcion ?? "-"}
                     </Td>
+
                     <Td>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <Btn
-                          onClick={() => openEdit(p)}
-                          disabled={saving}
-                          variant="default"
-                        >
+                        <Btn onClick={() => openEdit(p)} disabled={saving} variant="default">
                           Editar
                         </Btn>
-                        <Btn
-                          onClick={() => onDelete(p)}
-                          disabled={saving}
-                          variant="danger"
-                        >
+                        <Btn onClick={() => onDelete(p)} disabled={saving} variant="danger">
                           Eliminar
                         </Btn>
                       </div>
@@ -502,9 +867,10 @@ export default function AdminProducts() {
   );
 }
 
-function Th({ children, style }) {
+function Th({ children, style, ...props }) {
   return (
     <th
+      {...props}
       style={{
         textAlign: "left",
         borderBottom: "1px solid #ddd",
