@@ -8,12 +8,16 @@ const api = axios.create({
   },
 });
 
-// Interceptor para añadir el token a las peticiones
+// Interceptor para añadir el token y corregir Content-Type en FormData
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Con FormData no fijar Content-Type: el navegador pone multipart/form-data + boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     return config;
   },
@@ -180,6 +184,8 @@ export const getCurrentUser = () => {
   const userStr = localStorage.getItem("user");
   return userStr ? JSON.parse(userStr) : null;
 };
+
+export const getApiBaseURL = () => import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // Función auxiliar para verificar si el usuario está autenticado
 export const isAuthenticated = () => {

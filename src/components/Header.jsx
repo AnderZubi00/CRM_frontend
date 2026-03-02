@@ -10,7 +10,7 @@ function Header({ onOpenLogin, onNavigate }) {
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-xl">M</span>
             </div>
-            <span className="text-xl font-bold text-foreground">Mi App</span>
+            <span className="text-xl font-bold text-foreground">ANCAMI</span>
           </div>
 
           {/* Navegación */}
@@ -18,8 +18,8 @@ function Header({ onOpenLogin, onNavigate }) {
             <Button variant="ghost" onClick={() => onNavigate?.('home')}>
               <a href="#home">Inicio</a>
             </Button>
-            <Button variant="ghost" asChild>
-              <a href="#productos">Productos</a>
+            <Button variant="ghost" onClick={() => onNavigate?.("productos")}>
+              Productos
             </Button>
             <Button variant="ghost" onClick={() => onNavigate?.('sobre-nosotros')}>
               <a href="#sobre-nosotros">Sobre Nosotros</a>

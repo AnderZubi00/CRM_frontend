@@ -22,7 +22,7 @@ function DashboardAdmin({ user, onLogout }) {
       case "users":
         return <AdminUsers user={user} />;
       case "products":
-        return <AdminProducts user={user} />;
+        return <AdminProducts user={user} onNavigate={setSection} />;
       case "categories":
         return <AdminCategories />
       case "Suppliers":

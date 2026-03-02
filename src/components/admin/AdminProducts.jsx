@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import api from "../../services/api";
+import api, { getApiBaseURL } from "../../services/api";
 import './AdminProducts.css';
 
 function formatPrice(value) {
@@ -35,7 +35,7 @@ function StatusPill({ children }) {
   );
 }
 
-export default function AdminProducts() {
+export default function AdminProducts({ user, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -101,8 +101,7 @@ export default function AdminProducts() {
       if (!query) return true;
 
       const n = (p.nombre ?? "").toLowerCase();
-      const d = (p.descripcion ?? "").toLowerCase();
-      return n.includes(query) || d.includes(query);
+      return n.includes(query);
     });
 
     const dir = sortDir === "asc" ? 1 : -1;
@@ -176,9 +175,9 @@ export default function AdminProducts() {
     nombre: "",
     precio: "",
     stock: "",
-    descripcion: "",
     id_categoria: "",
     id_proveedor: "",
+    imagen_url: "",
   });
 
   const [fieldErrors, setFieldErrors] = useState({});
@@ -237,9 +236,9 @@ export default function AdminProducts() {
       nombre: "",
       precio: "",
       stock: "",
-      descripcion: "",
       id_categoria: "",
       id_proveedor: "",
+      imagen_url: "",
     });
   }
 
@@ -286,9 +285,9 @@ export default function AdminProducts() {
       nombre: p.nombre ?? "",
       precio: p.precio != null ? String(p.precio) : "",
       stock: p.stock != null ? String(p.stock) : "",
-      descripcion: p.descripcion ?? "",
       id_categoria: p.id_categoria != null ? String(p.id_categoria) : "",
       id_proveedor: p.id_proveedor != null ? String(p.id_proveedor) : "",
+      imagen_url: p.imagen_url ?? "",
     });
     setFieldErrors({});
     setError("");
@@ -313,6 +312,38 @@ export default function AdminProducts() {
     });
   }
 
+  async function handleImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Debes iniciar sesión para subir imágenes.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("imagen", file);
+      formData.append("token", token);
+      const res = await api.post("/api/productos/upload-imagen", formData);
+      const url = res.data?.url;
+      if (!url) {
+        setError("No se recibió la URL de la imagen desde el servidor.");
+        return;
+      }
+      setForm((prev) => ({ ...prev, imagen_url: url }));
+    } catch (e2) {
+      const data = e2?.response?.data;
+      const msg =
+        (typeof data === "string" ? data : null) ||
+        data?.message ||
+        data?.error ||
+        e2?.message ||
+        "Error subiendo la imagen. Comprueba el tamaño y formato.";
+      setError(`No se pudo subir la imagen. Detalle: ${msg}`);
+    }
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
@@ -331,10 +362,8 @@ export default function AdminProducts() {
         precio: Number(form.precio),
         id_categoria: Number(form.id_categoria),
         id_proveedor: Number(form.id_proveedor),
-        ...(form.stock === "" ? {} : { stock: Number(form.stock) }),
-        ...(form.descripcion.trim() === ""
-          ? {}
-          : { descripcion: form.descripcion.trim() }),
+        stock: form.stock === "" || form.stock == null ? 0 : Number(form.stock),
+        imagen_url: form.imagen_url || null,
       };
 
       if (mode === "create") {
@@ -405,11 +434,10 @@ export default function AdminProducts() {
       Proveedor: proveedorMap.get(Number(p.id_proveedor)) ?? "",
       Precio: formatPrice(p.precio),
       Stock: p.stock == null ? "" : formatInt(p.stock),
-      Descripcion: (p.descripcion ?? "").replace(/\r?\n/g, " "),
     }));
 
     const headers = Object.keys(rows[0] || {
-      ID: "", Nombre: "", Categoria: "", Proveedor: "", Precio: "", Stock: "", Descripcion: ""
+      ID: "", Nombre: "", Categoria: "", Proveedor: "", Precio: "", Stock: ""
     });
 
     const escape = (v) => {
@@ -466,6 +494,33 @@ export default function AdminProducts() {
           </Btn>
         </div>
       </div>
+
+      {onNavigate && (categorias.length === 0 || proveedores.length === 0) && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 12,
+            borderRadius: 10,
+            background: "#fef3c7",
+            border: "1px solid #f59e0b",
+            fontSize: 14,
+          }}
+        >
+          <strong>Para crear productos necesitas al menos una categoría y un proveedor.</strong>
+          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            {categorias.length === 0 && (
+              <Btn type="button" onClick={() => onNavigate("categories")} variant="primary">
+                Ir a Categorías
+              </Btn>
+            )}
+            {proveedores.length === 0 && (
+              <Btn type="button" onClick={() => onNavigate("Suppliers")} variant="primary">
+                Ir a Proveedores
+              </Btn>
+            )}
+          </div>
+        </div>
+      )}
 
       <div
         style={{
@@ -618,14 +673,13 @@ export default function AdminProducts() {
               }}
             >
               <colgroup>
-                <col style={{ width: 70 }} />   {/* ID */}
-                <col style={{ width: 220 }} />  {/* Nombre */}
-                <col style={{ width: 140 }} />  {/* Categoría */}
-                <col style={{ width: 160 }} />  {/* Proveedor */}
-                <col style={{ width: 110 }} />  {/* Precio */}
-                <col style={{ width: 90 }} />   {/* Stock */}
-                <col />                         {/* Descripción */}
-                <col style={{ width: 180 }} />  {/* Acciones */}
+                <col style={{ width: 70 }} />
+                <col style={{ width: 220 }} />
+                <col style={{ width: 140 }} />
+                <col style={{ width: 160 }} />
+                <col style={{ width: 110 }} />
+                <col style={{ width: 90 }} />
+                <col style={{ width: 180 }} />
               </colgroup>
 
               <thead>
@@ -689,8 +743,7 @@ export default function AdminProducts() {
                     Stock{sortKey === "stock" ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
                   </th>
 
-                  <Th style={{ paddingLeft: 16 }}>Descripción</Th>
-                  <Th style={{ width: 220 }}>Acciones</Th>
+                  <Th style={{ paddingLeft: 16 }}>Acciones</Th>
                 </tr>
               </thead>
 
@@ -715,16 +768,6 @@ export default function AdminProducts() {
 
                     <Td style={{ textAlign: "right" }}>
                       {p.stock == null ? "-" : formatInt(p.stock)}
-                    </Td>
-
-                    <Td
-                      style={{
-                        paddingLeft: 16,
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {p.descripcion ?? "-"}
                     </Td>
 
                     <Td>
@@ -819,20 +862,33 @@ export default function AdminProducts() {
                     name="stock"
                     value={form.stock}
                     onChange={onChange}
-                    placeholder="Ej: 10"
+                    placeholder="Ej: 10 (opcional, por defecto 0)"
                     inputMode="numeric"
                   />
                 </Field>
               </div>
 
-              <Field label="Descripción">
-                <TextArea
-                  name="descripcion"
-                  value={form.descripcion}
-                  onChange={onChange}
-                  placeholder="Opcional"
-                  rows={3}
-                />
+              <Field label="Imagen del producto (opcional)">
+                <div style={{ display: "grid", gap: 6 }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {form.imagen_url && (
+                    <img
+                      src={(getApiBaseURL() || "").replace(/\/$/, "") + form.imagen_url}
+                      alt="Vista previa"
+                      style={{
+                        maxWidth: 160,
+                        maxHeight: 120,
+                        borderRadius: 8,
+                        border: "1px solid #e5e7eb",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                </div>
               </Field>
 
               <div

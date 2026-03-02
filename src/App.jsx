@@ -1,5 +1,6 @@
 import Header from './components/Header';
 import Home from './components/Home';
+import VistaProductos from './components/VistaProductos';
 import SobreNosotros from './components/SobreNosotros';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -86,6 +87,9 @@ function App() {
       />
 
       {currentView === 'home' && <Home />}
+      {currentView === 'productos' && (
+        <VistaProductos onOpenLogin={() => setShowLoginModal(true)} />
+      )}
       {currentView === 'sobre-nosotros' && <SobreNosotros />}
       {currentView === 'contacto' && <Contact />}
       {currentView === 'politica-privacidad' && <Politica />}

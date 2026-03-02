@@ -1,18 +1,10 @@
-function AdminLayout({
-  user,
-  onLogout,
-  section,
-  onSectionChange,
-  children,
-}) {
+function EmployeeLayout({ user, onLogout, section, onSectionChange, children }) {
   const navItems = [
     { id: "home", label: "Inicio" },
     { id: "users", label: "Usuarios" },
     { id: "products", label: "Productos" },
     { id: "categories", label: "Categorías" },
     { id: "Suppliers", label: "Proveedores" },
-    { id: "employees", label: "Empleados" },
-    { id: "reports", label: "Reportes" },
   ];
 
   const activeLabel = navItems.find((n) => n.id === section)?.label ?? "Panel";
@@ -27,8 +19,8 @@ function AdminLayout({
               <span className="text-white font-semibold">M</span>
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-semibold text-foreground">Administración</div>
-              <div className="text-xs text-muted-foreground">Panel de control</div>
+              <div className="text-sm font-semibold text-foreground">Panel de empleado</div>
+              <div className="text-xs text-muted-foreground">Gestión diaria</div>
             </div>
           </div>
 
@@ -71,7 +63,7 @@ function AdminLayout({
             <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">
-                  Administración <span className="mx-1">/</span> {activeLabel}
+                  Empleado <span className="mx-1">/</span> {activeLabel}
                 </div>
                 <div className="text-base sm:text-lg font-semibold text-foreground truncate">
                   {activeLabel}
@@ -83,7 +75,7 @@ function AdminLayout({
                   <div className="text-sm font-medium text-foreground truncate max-w-[260px]">
                     {user?.correo ?? "-"}
                   </div>
-                  <div className="text-xs text-muted-foreground">Administrador</div>
+                  <div className="text-xs text-muted-foreground">Empleado</div>
                 </div>
 
                 <button
@@ -131,4 +123,5 @@ function AdminLayout({
   );
 }
 
-export default AdminLayout;
+export default EmployeeLayout;
+

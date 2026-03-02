@@ -42,9 +42,14 @@ export default function AdminCategories() {
             const res = await api.get("/api/categorias");
             setItems(Array.isArray(res.data) ? res.data : []);
         } catch (e) {
-            setError(
-                e?.response?.data?.message || "No se pudieron cargar las categorías."
-            );
+            const data = e?.response?.data;
+            const msg =
+                (typeof data === 'string' ? data : null) ||
+                data?.message ||
+                data?.error ||
+                e?.message ||
+                "No se pudieron cargar las categorías.";
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -103,10 +108,13 @@ export default function AdminCategories() {
             setOpen(false);
             await load();
         } catch (e2) {
+            const data = e2?.response?.data;
             const msg =
-                e2?.response?.data?.message ||
-                e2?.response?.data ||
+                (typeof data === 'string' ? data : null) ||
+                data?.message ||
+                data?.error ||
                 e2?.message ||
+                (e2?.response ? null : "Comprueba que el servidor esté en marcha y la URL en .env (VITE_API_URL).") ||
                 "Error guardando categoría";
             setError(`No se pudo guardar. Detalle: ${msg}`);
         } finally {

@@ -133,8 +133,8 @@ function AdminEmployees() {
             </thead>
             <tbody>
               {empleados.map((e) => (
-                <tr key={e.id_empleado} className="border-t">
-                  <td className="p-3">{e.id_empleado}</td>
+                <tr key={e.id_empleado ?? e.id_usuario} className="border-t">
+                  <td className="p-3">{e.id_empleado ?? e.id_usuario ?? '-'}</td>
                   <td className="p-3">{e.nombre ?? "-"}</td>
                   <td className="p-3">{e.apellido ?? "-"}</td>
                   <td className="p-3">{e.telefono ?? "-"}</td>
