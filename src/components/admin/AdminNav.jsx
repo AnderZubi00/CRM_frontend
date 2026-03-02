@@ -24,7 +24,7 @@ function AdminNav({ user, onLogout, section, onSectionChange }) {
                 <div className="flex justify-between h-16 items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                            <span className="text-white font-bold text-xl">M</span>
+                            <span className="text-white font-bold text-xl">A</span>
                         </div>
                         <h1 className="text-xl font-bold text-white">
                             Panel de Administración

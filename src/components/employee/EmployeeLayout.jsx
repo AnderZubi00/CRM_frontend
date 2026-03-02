@@ -16,7 +16,7 @@ function EmployeeLayout({ user, onLogout, section, onSectionChange, children }) 
         <aside className="hidden md:flex w-72 flex-col border-r bg-background">
           <div className="h-16 px-5 flex items-center gap-3 border-b">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
-              <span className="text-white font-semibold">M</span>
+              <span className="text-white font-semibold">A</span>
             </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold text-foreground">Panel de empleado</div>

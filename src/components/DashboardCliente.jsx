@@ -119,7 +119,7 @@ function DashboardCliente({ user, onLogout }) {
           <div className="flex justify-between h-16 items-center gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">M</span>
+                <span className="text-white font-bold text-lg">A</span>
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg font-bold text-slate-800 truncate">Tienda</h1>
