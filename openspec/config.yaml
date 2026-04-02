@@ -1,0 +1,40 @@
+# SDD — ANCAMI frontend (React + Vite)
+schema: spec-driven
+
+context: |
+  Stack: React 19, Vite 7, Tailwind CSS 4, shadcn/ui (Radix), axios.
+  API: Express backend (VITE_API_URL). Roles: admin, empleado, cliente.
+  Lint: ESLint 9. Build: vite build.
+
+rules:
+  proposal:
+    - Incluir plan de rollback en cambios con riesgo (auth, pagos, datos).
+    - Nombrar módulos afectados (components/, services/, App.jsx).
+  specs:
+    - Escenarios en formato Given / When / Then.
+    - Palabras clave RFC 2119 (MUST, SHOULD, MAY).
+  design:
+    - Flujos complejos: diagrama o pasos numerados.
+    - Decisiones de UI: alinear con ui-ux-pro-max y tokens existentes.
+  tasks:
+    - Fases: preparación → implementación → pruebas manuales.
+    - Numeración 1.1, 1.2; tareas cerrables en una sesión.
+  apply:
+    - Seguir patrones de componentes existentes (JSX, @/ alias).
+    - Para UI: cargar skill `.cursor/skills/ui-ux-pro-max/SKILL.md`.
+  verify:
+    - npm run lint; probar flujos en navegador según escenarios.
+  archive:
+    - Antes de fusionar delta a specs/: revisar eliminaciones grandes.
+
+orchestration:
+  pipeline:
+    - sdd-explore: idea / investigación → exploration.md (opcional)
+    - sdd-propose: proposal.md (alcance e intención)
+    - sdd-spec: changes/{nombre}/specs/{dominio}/spec.md
+    - sdd-design: design.md
+    - sdd-tasks: tasks.md (checklist)
+    - sdd-apply: implementar y marcar tareas
+    - sdd-verify: verify-report.md
+    - sdd-archive: mover a changes/archive/ y actualizar specs/ principal
+  change_folder: openspec/changes/{change-name}/

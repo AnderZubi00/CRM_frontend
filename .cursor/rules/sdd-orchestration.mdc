@@ -1,0 +1,13 @@
+---
+description: Orquestación SDD (OpenSpec) y skills del frontend ANCAMI
+globs:
+  - "**/*.{jsx,js,tsx,ts,css}"
+  - "openspec/**"
+---
+
+# SDD en este proyecto
+
+- Antes de features grandes: lee `AGENTS.md` y `openspec/config.yaml`.
+- Cambios estructurados viven en `openspec/changes/<nombre>/` (proposal → specs → design → tasks → verify → archive).
+- Trabajo de UI/UX: sigue `.cursor/skills/ui-ux-pro-max/SKILL.md`.
+- Skills globales sdd-* en `~/.cursor/skills/`: úsalos cuando el usuario pida fases explícitas (explore, propose, spec, design, tasks, apply, verify, archive).
