@@ -1,13 +1,15 @@
 .admin-products .table-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  overflow: hidden; /* recorta el header/filas al radio */
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px hsl(222 47% 11% / 0.05);
+  overflow: hidden;
 }
 
 .admin-products .table-scroll {
   overflow-x: auto;
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
 }
 
 .admin-products table {
@@ -18,15 +20,19 @@
 }
 
 .admin-products thead th {
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: hsl(var(--muted) / 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .admin-products th,
 .admin-products td {
   padding: 8px 10px !important;
   vertical-align: middle;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid hsl(var(--border) / 0.6);
 }
 /* Columna Stock = 6ª columna (según tu tabla actual) */
 .admin-products td:nth-child(6) {
@@ -38,7 +44,7 @@
 }
 
 .admin-products tbody tr:hover td {
-  background: #fafafa;
+  background: hsl(var(--muted) / 0.5);
 }
 
 /* Compacta botones dentro de Acciones sin tocar estilos globales */
@@ -60,5 +66,12 @@
 .admin-products table.col-precio td:nth-child(5),
 .admin-products table.col-stock th:nth-child(6),
 .admin-products table.col-stock td:nth-child(6) {
-  background: #f3f4f6;
+  background: hsl(var(--accent));
+}
+
+.admin-products thead th:nth-child(1),
+.admin-products thead th:nth-child(2),
+.admin-products thead th:nth-child(5),
+.admin-products thead th:nth-child(6) {
+  background: hsl(var(--muted) / 0.95);
 }

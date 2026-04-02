@@ -1,19 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
+import { cn } from "@/lib/utils";
 
 function StatusPill({ children }) {
     return (
-        <span
-            style={{
-                fontSize: 12,
-                padding: "4px 8px",
-                borderRadius: 999,
-                border: "1px solid #e5e7eb",
-                background: "#f9fafb",
-                opacity: 0.9,
-                whiteSpace: "nowrap",
-            }}
-        >
+        <span className="inline-flex items-center whitespace-nowrap rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {children}
         </span>
     );
@@ -148,24 +139,16 @@ export default function AdminCategories() {
     }
 
     return (
-        <div style={{ padding: 16 }}>
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    marginBottom: 12,
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <h2 style={{ margin: 0 }}>Categorías</h2>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+            <div className="mb-6 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Categorías</h2>
                     {loading || saving ? (
                         <StatusPill>{saving ? "Guardando…" : "Cargando…"}</StatusPill>
                     ) : null}
                 </div>
 
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex flex-wrap gap-2">
                     <Btn onClick={load} disabled={loading || saving} variant="default">
                         Recargar
                     </Btn>
@@ -177,35 +160,26 @@ export default function AdminCategories() {
 
             {error ? (
                 <div
-                    style={{
-                        background: error.startsWith("⚠️") ? "#fff7ed" : "#ffe8e8",
-                        border: error.startsWith("⚠️") ? "1px solid #fdba74" : "1px solid #ffb3b3",
-                        padding: 10,
-                        borderRadius: 8,
-                        marginBottom: 12,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                    }}
+                    className={cn(
+                        "mb-4 rounded-lg border p-3 text-sm whitespace-pre-wrap break-words",
+                        error.startsWith("⚠️")
+                            ? "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100"
+                            : "border-red-200 bg-red-50 text-red-900 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-100"
+                    )}
                 >
                     {error}
                 </div>
             ) : null}
 
             {loading ? (
-                <div>Cargando...</div>
+                <div className="text-muted-foreground">Cargando...</div>
             ) : items.length === 0 ? (
-                <div>No hay categorías.</div>
+                <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-10 text-center text-sm text-muted-foreground">
+                    No hay categorías.
+                </div>
             ) : (
-                <div
-                    style={{
-                        background: "#fff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 16,
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-                        overflow: "hidden",
-                    }}
-                >
-                    <div style={{ overflowX: "auto" }}>
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                    <div className="max-h-[min(70vh,640px)] overflow-auto">
                         <table
                             style={{
                                 width: "100%",
@@ -314,13 +288,8 @@ export default function AdminCategories() {
 function Th({ children, style }) {
     return (
         <th
-            style={{
-                textAlign: "left",
-                borderBottom: "1px solid #e5e7eb",
-                padding: "10px 12px",
-                background: "#f9fafb",
-                ...style,
-            }}
+            className="sticky top-0 z-10 border-b border-border bg-muted/95 px-3 py-2.5 text-left text-sm font-medium text-foreground backdrop-blur-sm"
+            style={style}
         >
             {children}
         </th>
@@ -330,12 +299,8 @@ function Th({ children, style }) {
 function Td({ children, style }) {
     return (
         <td
-            style={{
-                borderBottom: "1px solid #eee",
-                padding: "10px 12px",
-                verticalAlign: "middle",
-                ...style,
-            }}
+            className="border-b border-border/60 px-3 py-2.5 align-middle text-sm"
+            style={style}
         >
             {children}
         </td>

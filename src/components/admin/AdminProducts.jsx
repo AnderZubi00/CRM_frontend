@@ -19,23 +19,13 @@ function formatInt(value) {
 
 function StatusPill({ children }) {
   return (
-    <span
-      style={{
-        fontSize: 12,
-        padding: "4px 8px",
-        borderRadius: 999,
-        border: "1px solid #e5e7eb",
-        background: "#f9fafb",
-        opacity: 0.9,
-        whiteSpace: "nowrap",
-      }}
-    >
+    <span className="inline-flex items-center whitespace-nowrap rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
       {children}
     </span>
   );
 }
 
-export default function AdminProducts({ user, onNavigate }) {
+export default function AdminProducts({ onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -64,7 +54,7 @@ export default function AdminProducts({ user, onNavigate }) {
       ? initialPrefs.sortDir
       : "asc"
   );
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize] = useState(25);
   const [page, setPage] = useState(1);
   useEffect(() => {
     try {
@@ -81,7 +71,6 @@ export default function AdminProducts({ user, onNavigate }) {
     } catch {
       // si está corrupto, lo ignoramos
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     try {
@@ -89,7 +78,9 @@ export default function AdminProducts({ user, onNavigate }) {
         "adminProductsPrefs",
         JSON.stringify({ q, catFilter, provFilter, sortKey, sortDir })
       );
-    } catch { }
+    } catch {
+      // almacenamiento local opcional
+    }
   }, [q, catFilter, provFilter, sortKey, sortDir]);
   const filteredItems = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -465,24 +456,16 @@ export default function AdminProducts({ user, onNavigate }) {
   }
 
   return (
-    <div className="admin-products" style={{ padding: 16 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          marginBottom: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <h2 style={{ margin: 0 }}>Productos</h2>
+    <div className="admin-products rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Productos</h2>
           {loading || saving ? (
             <StatusPill>{saving ? "Guardando…" : "Cargando…"}</StatusPill>
           ) : null}
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="flex flex-wrap gap-2">
           <Btn onClick={load} disabled={loading || saving} variant="default">
             Actualizar inventario
           </Btn>
@@ -496,18 +479,11 @@ export default function AdminProducts({ user, onNavigate }) {
       </div>
 
       {onNavigate && (categorias.length === 0 || proveedores.length === 0) && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 12,
-            borderRadius: 10,
-            background: "#fef3c7",
-            border: "1px solid #f59e0b",
-            fontSize: 14,
-          }}
-        >
-          <strong>Para crear productos necesitas al menos una categoría y un proveedor.</strong>
-          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-100">
+          <strong className="font-semibold">
+            Para crear productos necesitas al menos una categoría y un proveedor.
+          </strong>
+          <div className="mt-3 flex flex-wrap gap-2">
             {categorias.length === 0 && (
               <Btn type="button" onClick={() => onNavigate("categories")} variant="primary">
                 Ir a Categorías

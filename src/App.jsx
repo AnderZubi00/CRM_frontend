@@ -84,9 +84,15 @@ function App() {
       <Header
         onOpenLogin={() => setShowLoginModal(true)}
         onNavigate={(view) => setCurrentView(view)}
+        currentView={currentView}
       />
 
-      {currentView === 'home' && <Home />}
+      {currentView === 'home' && (
+        <Home
+          onOpenLogin={() => setShowLoginModal(true)}
+          onNavigate={(view) => setCurrentView(view)}
+        />
+      )}
       {currentView === 'productos' && (
         <VistaProductos onOpenLogin={() => setShowLoginModal(true)} />
       )}

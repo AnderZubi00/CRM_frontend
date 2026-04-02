@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { getUsers, createUser } from "@/services/api";
 import api, { getCurrentUser } from "@/services/api";
+import PageHeader from "@/components/shell/PageHeader";
 
 function AdminUsers() {
   const [loading, setLoading] = useState(true);
@@ -261,23 +262,25 @@ function AdminUsers() {
   ];
 
   return (
-    <div className="bg-card rounded-2xl border shadow-xl p-6">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-foreground">Usuarios</h2>
-
-        <button
-          type="button"
-          onClick={() => {
-            resetFormCreate();
-            setEditingUser(null);
-            setModalMode("create");
-            setOpen(true);
-          }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-foreground text-background hover:opacity-90 transition"
-        >
-          + Crear usuario
-        </button>
-      </div>
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <PageHeader
+        title="Usuarios"
+        description="Gestión de cuentas por rol (administrador, empleado, cliente)."
+        right={
+          <button
+            type="button"
+            onClick={() => {
+              resetFormCreate();
+              setEditingUser(null);
+              setModalMode("create");
+              setOpen(true);
+            }}
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+          >
+            + Crear usuario
+          </button>
+        }
+      />
 
       {loading && <p className="text-muted-foreground mt-4">Cargando usuarios...</p>}
 
@@ -289,8 +292,8 @@ function AdminUsers() {
       )}
 
       {!loading && !error && (
-        <div className="mt-4 overflow-auto border rounded-xl">
-          <table className="min-w-full text-sm table-fixed">
+        <div className="mt-4 overflow-auto rounded-xl border border-border bg-card shadow-sm">
+          <table className="min-w-full table-fixed text-sm">
             <colgroup>
               <col style={{ width: 100 }} />
               <col style={{ width: 100 }} />
@@ -301,7 +304,7 @@ function AdminUsers() {
               <col style={{ width: 200 }} />
             </colgroup>
 
-            <thead className="bg-muted/40">
+            <thead className="sticky top-0 z-10 border-b border-border bg-muted/95 backdrop-blur-sm">
               <tr>
                 <th className="text-center p-3">Rol</th>
                 <th className="p-3">

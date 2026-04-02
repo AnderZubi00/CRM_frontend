@@ -3,6 +3,7 @@ description: Orquestación SDD (OpenSpec) y skills del frontend ANCAMI
 globs:
   - "**/*.{jsx,js,tsx,ts,css}"
   - "openspec/**"
+alwaysApply: true
 ---
 
 # SDD en este proyecto
@@ -11,3 +12,10 @@ globs:
 - Cambios estructurados viven en `openspec/changes/<nombre>/` (proposal → specs → design → tasks → verify → archive).
 - Trabajo de UI/UX: sigue `.cursor/skills/ui-ux-pro-max/SKILL.md`.
 - Skills globales sdd-* en `~/.cursor/skills/`: úsalos cuando el usuario pida fases explícitas (explore, propose, spec, design, tasks, apply, verify, archive).
+
+## Orquestación práctica (qué hacer / qué skill usar)
+
+- **Si el usuario pide “plan/arquitectura”**: trabajar en `openspec/changes/<cambio>/` y usar `sdd-propose` → `sdd-spec` → `sdd-design` → `sdd-tasks`.
+- **Si el usuario pide “implementar”**: ejecutar `sdd-apply` y solo entonces tocar JSX/CSS; cerrar tareas en `tasks.md`.
+- **Si el cambio es UI/UX**: cargar primero `ui-ux-pro-max`; si el objetivo es “acabado visual distintivo”, complementar con `frontend-design`.
+- **Salida obligatoria**: `verify-report.md` + `npm run lint` (y smoke por rol) antes de dar el cambio por terminado; después `sdd-archive`.

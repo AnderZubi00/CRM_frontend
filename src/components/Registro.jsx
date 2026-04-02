@@ -41,7 +41,7 @@ function Registro({ onRegisterSuccess, onGoToLogin, onClose }) {
     }
 
     try {
-      const { confirmarContraseña, ...userData } = formData;
+      const userData = { correo: formData.correo, contraseña: formData.contraseña };
       const response = await api.post('/api/users/register', userData);
       setSuccess('Usuario registrado exitosamente');
 
@@ -62,7 +62,7 @@ function Registro({ onRegisterSuccess, onGoToLogin, onClose }) {
   };
 
   const cardContent = (
-    <div className={`bg-card rounded-2xl p-8 border shadow-xl animate-login-in ${isModal ? 'relative' : ''}`}>
+    <div className={`animate-login-in rounded-2xl border border-border bg-card p-8 shadow-sm ${isModal ? 'relative' : ''}`}>
       {isModal && (
         <Button
           variant="ghost"
@@ -76,14 +76,13 @@ function Registro({ onRegisterSuccess, onGoToLogin, onClose }) {
           </svg>
         </Button>
       )}
-      {/* Icono circular con gradiente */}
-      <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            </div>
-          </div>
+      <div className="mb-6 flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-md">
+          <svg className="h-8 w-8 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        </div>
+      </div>
 
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-1">

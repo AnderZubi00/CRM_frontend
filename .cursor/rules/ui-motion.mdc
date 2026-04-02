@@ -1,0 +1,21 @@
+---
+description: Motion (Framer Motion) y “Magic UI” sin romper CRM
+globs:
+  - "src/**/*.{jsx,js,tsx,ts}"
+alwaysApply: false
+---
+
+# Motion UI (CRM ANCAMI)
+
+- **Dónde sí**: marketing (`Home`, `Header`), auth (`Login`, `Registro`), micro-interacciones (hover/press), transiciones de panel discretas.
+- **Dónde no (por defecto)**: tablas densas del CRM (evitar layout shift, evitar animar `height:auto` en listas grandes).
+- **Reglas**:
+  - Animaciones **cortas** (150–250ms) y con easing suave.
+  - Respetar `prefers-reduced-motion`.
+  - Priorizar `opacity` / `transform` (evitar animar `box-shadow` grande o propiedades que fuerzan reflow).
+  - Mantener tokens: usar `primary`, `muted`, `border` (no reintroducir gradientes morado/azul como marca principal).
+
+## Patrón recomendado
+
+- En listas pequeñas: `motion.div` con `initial/animate` y `whileHover`.
+- En secciones: `LazyMotion` + `domAnimation` para bajar peso.

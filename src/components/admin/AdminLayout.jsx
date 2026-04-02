@@ -1,3 +1,15 @@
+import CrmSidebarNav from "../shell/CrmSidebarNav";
+
+const NAV_ITEMS = [
+  { id: "home", label: "Inicio", icon: "home" },
+  { id: "users", label: "Usuarios", icon: "users" },
+  { id: "products", label: "Productos", icon: "products" },
+  { id: "categories", label: "Categorías", icon: "categories" },
+  { id: "Suppliers", label: "Proveedores", icon: "suppliers" },
+  { id: "employees", label: "Empleados", icon: "employees" },
+  { id: "reports", label: "Reportes", icon: "reports" },
+];
+
 function AdminLayout({
   user,
   onLogout,
@@ -5,101 +17,70 @@ function AdminLayout({
   onSectionChange,
   children,
 }) {
-  const navItems = [
-    { id: "home", label: "Inicio" },
-    { id: "users", label: "Usuarios" },
-    { id: "products", label: "Productos" },
-    { id: "categories", label: "Categorías" },
-    { id: "Suppliers", label: "Proveedores" },
-    { id: "employees", label: "Empleados" },
-    { id: "reports", label: "Reportes" },
-  ];
-
-  const activeLabel = navItems.find((n) => n.id === section)?.label ?? "Panel";
+  const activeLabel = NAV_ITEMS.find((n) => n.id === section)?.label ?? "Panel";
 
   return (
-    <div className="min-h-[100dvh] bg-muted/30">
+    <div className="min-h-[100dvh] bg-muted/60">
       <div className="flex min-h-[100dvh]">
-        {/* Sidebar */}
-        <aside className="hidden md:flex w-72 flex-col border-r bg-background">
-          <div className="h-16 px-5 flex items-center gap-3 border-b">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
-              <span className="text-white font-semibold">A</span>
+        <aside className="hidden w-72 flex-col border-r border-border bg-card shadow-sm md:flex">
+          <div className="flex h-16 items-center gap-3 border-b border-border px-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <span className="text-sm font-bold">A</span>
             </div>
-            <div className="leading-tight">
-              <div className="text-sm font-semibold text-foreground">Administración</div>
-              <div className="text-xs text-muted-foreground">Panel de control</div>
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-sm font-semibold text-foreground">ANCAMI</div>
+              <div className="text-xs text-muted-foreground">Administración</div>
             </div>
           </div>
 
-          <nav className="p-3 space-y-1">
-            {navItems.map((item) => {
-              const active = item.id === section;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSectionChange?.(item.id)}
-                  className={[
-                    "w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition",
-                    active
-                      ? "bg-muted text-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  ].join(" ")}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <span>{item.label}</span>
-                  {active ? (
-                    <span className="h-2 w-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" />
-                  ) : null}
-                </button>
-              );
-            })}
-          </nav>
+          <CrmSidebarNav
+            items={NAV_ITEMS}
+            section={section}
+            onSectionChange={onSectionChange}
+          />
 
-          <div className="mt-auto p-4 border-t">
-            <div className="text-xs text-muted-foreground">
-              Sesión iniciada como{" "}
-              <span className="font-medium text-foreground">{user?.correo ?? "-"}</span>
-            </div>
+          <div className="mt-auto border-t border-border p-4">
+            <p className="text-xs text-muted-foreground">
+              Sesión:{" "}
+              <span className="font-medium text-foreground">{user?.correo ?? "—"}</span>
+            </p>
           </div>
         </aside>
 
-        {/* Main */}
-        <div className="flex-1 min-w-0">
-          <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
-            <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur-md">
+            <div className="flex h-14 items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">
-                  Administración <span className="mx-1">/</span> {activeLabel}
-                </div>
-                <div className="text-base sm:text-lg font-semibold text-foreground truncate">
+                <nav className="text-xs font-medium text-muted-foreground" aria-label="Migas">
+                  <span className="text-foreground/80">Panel</span>
+                  <span className="mx-1.5 text-border">/</span>
+                  <span>{activeLabel}</span>
+                </nav>
+                <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
                   {activeLabel}
-                </div>
+                </h1>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:block text-right leading-tight">
-                  <div className="text-sm font-medium text-foreground truncate max-w-[260px]">
-                    {user?.correo ?? "-"}
+              <div className="flex shrink-0 items-center gap-3">
+                <div className="hidden text-right leading-tight sm:block">
+                  <div className="max-w-[220px] truncate text-sm font-medium text-foreground lg:max-w-[280px]">
+                    {user?.correo ?? "—"}
                   </div>
                   <div className="text-xs text-muted-foreground">Administrador</div>
                 </div>
-
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="inline-flex items-center rounded-lg border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition"
+                  className="inline-flex items-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted"
                 >
                   Cerrar sesión
                 </button>
               </div>
             </div>
 
-            {/* Navegación móvil */}
-            <div className="md:hidden px-4 sm:px-6 pb-3">
-              <div className="flex gap-2 overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                {navItems.map((item) => {
+            <div className="border-t border-border/60 px-4 pb-3 pt-2 md:hidden">
+              <div className="flex gap-2 overflow-x-auto [-webkit-overflow-scrolling:touch] pb-1">
+                {NAV_ITEMS.map((item) => {
                   const active = item.id === section;
                   return (
                     <button
@@ -107,10 +88,10 @@ function AdminLayout({
                       type="button"
                       onClick={() => onSectionChange?.(item.id)}
                       className={[
-                        "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium border transition",
+                        "shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition",
                         active
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background text-foreground border-border hover:bg-muted",
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background text-foreground hover:bg-muted",
                       ].join(" ")}
                       aria-current={active ? "page" : undefined}
                     >
@@ -122,9 +103,7 @@ function AdminLayout({
             </div>
           </header>
 
-          <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            {children}
-          </main>
+          <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
     </div>

@@ -34,7 +34,7 @@ function Login({ onLoginSuccess, onGoToRegister, onClose }) {
   };
 
   const cardContent = (
-    <div className={`bg-card rounded-2xl p-8 border shadow-xl animate-login-in ${isModal ? 'relative' : ''}`}>
+    <div className={`animate-login-in rounded-2xl border border-border bg-card p-8 shadow-sm ${isModal ? 'relative' : ''}`}>
       {isModal && (
         <Button
           variant="ghost"
@@ -49,10 +49,9 @@ function Login({ onLoginSuccess, onGoToRegister, onClose }) {
         </Button>
       )}
       
-      {/* Icono circular con gradiente */}
-      <div className="flex justify-center mb-6">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="mb-6 flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-md">
+          <svg className="h-8 w-8 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
           </svg>
         </div>

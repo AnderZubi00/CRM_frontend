@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getEmpleados } from "@/services/api";
 import api from "@/services/api";
+import PageHeader from "@/components/shell/PageHeader";
 
 function AdminEmployees() {
   const [loading, setLoading] = useState(true);
@@ -39,7 +40,6 @@ function AdminEmployees() {
 
   useEffect(() => {
     loadEmpleados();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function resetForm() {
@@ -94,21 +94,23 @@ function AdminEmployees() {
   }
 
   return (
-    <div className="bg-card rounded-2xl border shadow-xl p-6">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-foreground">Usuarios (Empleado)</h2>
-
-        <button
-          type="button"
-          onClick={() => {
-            resetForm();
-            setOpen(true);
-          }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-foreground text-background hover:opacity-90 transition"
-        >
-          + Crear Usuario (Empleado)
-        </button>
-      </div>
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <PageHeader
+        title="Empleados"
+        description="Alta de usuarios con rol empleado y datos laborales."
+        right={
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+              setOpen(true);
+            }}
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+          >
+            + Crear usuario (empleado)
+          </button>
+        }
+      />
 
       {loading && <p className="text-muted-foreground mt-4">Cargando empleados...</p>}
 
@@ -120,9 +122,9 @@ function AdminEmployees() {
       )}
 
       {!loading && !error && (
-        <div className="mt-4 overflow-auto border rounded-xl">
+        <div className="mt-4 overflow-auto rounded-xl border border-border bg-card shadow-sm">
           <table className="min-w-full text-sm">
-            <thead className="bg-muted/40">
+            <thead className="sticky top-0 z-10 border-b border-border bg-muted/95 backdrop-blur-sm">
               <tr>
                 <th className="text-left p-3">ID</th>
                 <th className="text-left p-3">Nombre</th>
