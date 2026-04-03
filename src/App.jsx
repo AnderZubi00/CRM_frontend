@@ -17,11 +17,15 @@ import './App.css';
 function App() {
   const [currentView, setCurrentView] = useState('home'); // 'home' o 'registro'
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginInitialCorreo, setLoginInitialCorreo] = useState('');
+  const [loginPostRegisterMessage, setLoginPostRegisterMessage] = useState('');
   const [user, setUser] = useState(getCurrentUser());
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setShowLoginModal(false);
+    setLoginInitialCorreo('');
+    setLoginPostRegisterMessage('');
     setCurrentView('dashboard');
   };
   useEffect(() => {
@@ -51,9 +55,20 @@ function App() {
 
     return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
   }, []);
-  const handleRegisterSuccess = () => {
-    setCurrentView('home');
+  const handleCloseLoginModal = () => {
     setShowLoginModal(false);
+    setLoginInitialCorreo('');
+    setLoginPostRegisterMessage('');
+  };
+
+  /** Tras registro: volver a inicio, abrir login y opcionalmente pre-rellenar correo */
+  const handleRegisterSuccess = ({ correo } = {}) => {
+    setCurrentView('home');
+    setLoginInitialCorreo(typeof correo === 'string' ? correo : '');
+    setLoginPostRegisterMessage(
+      'Cuenta creada. Inicia sesión con tu correo y contraseña para entrar a tu panel.'
+    );
+    setShowLoginModal(true);
   };
 
   const handleLogout = () => {
@@ -117,7 +132,11 @@ function App() {
             <Registro
               onClose={() => setCurrentView('home')}
               onRegisterSuccess={handleRegisterSuccess}
-              onGoToLogin={() => { setCurrentView('home'); setShowLoginModal(true); }}
+              onGoToLogin={() => {
+                setCurrentView('home');
+                setLoginPostRegisterMessage('');
+                setShowLoginModal(true);
+              }}
             />
           </div>
         </div>
@@ -127,14 +146,16 @@ function App() {
       {showLoginModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={(e) => e.target === e.currentTarget && setShowLoginModal(false)}
+          onClick={(e) => e.target === e.currentTarget && handleCloseLoginModal()}
           role="dialog"
           aria-modal="true"
           aria-labelledby="login-title"
         >
           <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <Login
-              onClose={() => setShowLoginModal(false)}
+              initialCorreo={loginInitialCorreo}
+              postRegisterMessage={loginPostRegisterMessage}
+              onClose={handleCloseLoginModal}
               onLoginSuccess={handleLoginSuccess}
               onGoToRegister={handleGoToRegister}
             />

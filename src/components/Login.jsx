@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function Login({ onLoginSuccess, onGoToRegister, onClose }) {
+function Login({ onLoginSuccess, onGoToRegister, onClose, initialCorreo = '', postRegisterMessage = '' }) {
   const isModal = Boolean(onClose);
-  const [correo, setCorreo] = useState('');
+  const [correo, setCorreo] = useState(initialCorreo);
   const [contraseña, setContraseña] = useState('');
   const [recordarme, setRecordarme] = useState(false);
   const [mostrarContraseña, setMostrarContraseña] = useState(false);
@@ -63,6 +63,15 @@ function Login({ onLoginSuccess, onGoToRegister, onClose }) {
         </h2>
         <p className="text-muted-foreground text-sm">Inicia sesión en tu cuenta</p>
       </div>
+
+      {postRegisterMessage ? (
+        <div
+          className="mb-5 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          {postRegisterMessage}
+        </div>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Correo electrónico */}
