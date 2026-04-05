@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api, { getApiBaseURL } from "../../services/api";
+import AdminProductStats from "./AdminProductStats";
 import './AdminProducts.css';
 
 function formatPrice(value) {
@@ -26,6 +27,7 @@ function StatusPill({ children }) {
 }
 
 export default function AdminProducts({ onNavigate }) {
+  const [mainTab, setMainTab] = useState("gestion");
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -457,6 +459,33 @@ export default function AdminProducts({ onNavigate }) {
 
   return (
     <div className="admin-products rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      {/* ── Tab switcher principal ── */}
+      <div className="mb-6 flex gap-1 rounded-lg border border-border bg-muted/40 p-1 w-fit">
+        {[
+          { id: "gestion", label: "Gestión" },
+          { id: "crm", label: "CRM & Ventas" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setMainTab(t.id)}
+            className={[
+              "rounded-md px-4 py-2 text-sm font-medium transition-colors",
+              mainTab === t.id
+                ? "bg-card shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Vista CRM ── */}
+      {mainTab === "crm" && <AdminProductStats productos={items} />}
+
+      {/* ── Vista Gestión (contenido existente) ── */}
+      {mainTab === "gestion" && <div>
       <div className="mb-6 flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Productos</h2>
@@ -895,6 +924,7 @@ export default function AdminProducts({ onNavigate }) {
           </form>
         </Modal>
       ) : null}
+      </div>}
     </div>
   );
 }

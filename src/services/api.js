@@ -256,5 +256,14 @@ export const getMisPedidos = async () => {
   return res.data;
 };
 
+/**
+ * Obtener todos los pedidos (solo admin/empleado)
+ * @returns {Promise} Lista completa de pedidos con detalles y datos de cliente
+ */
+export const getAllPedidos = async () => {
+  const res = await api.get("/api/pedidos/todos");
+  return res.data;
+};
+
 export default api;
 
