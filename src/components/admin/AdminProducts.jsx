@@ -463,7 +463,7 @@ export default function AdminProducts({ onNavigate }) {
       <div className="mb-6 flex gap-1 rounded-lg border border-border bg-muted/40 p-1 w-fit">
         {[
           { id: "gestion", label: "Gestión" },
-          { id: "crm", label: "CRM & Ventas" },
+          { id: "crm", label: "Ventas" },
         ].map((t) => (
           <button
             key={t.id}
