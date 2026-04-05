@@ -213,4 +213,48 @@ export const createEmpleado = async (empleadoData) => {
   return res.data;
 };
 
+// ==================== CATEGORÍAS ====================
+
+/**
+ * Obtener todas las categorías
+ * @returns {Promise} Lista de categorías
+ */
+export const getCategorias = async () => {
+  const res = await api.get("/api/categorias");
+  return res.data;
+};
+
+// ==================== CATÁLOGO PÚBLICO ====================
+
+/**
+ * Obtener productos del catálogo público (sin auth)
+ * @returns {Promise} Lista de productos
+ */
+export const getCatalogoProductos = async () => {
+  const res = await api.get("/api/catalogo/productos");
+  return res.data;
+};
+
+// ==================== PEDIDOS ====================
+
+/**
+ * Crear un nuevo pedido
+ * @param {{ items: { id_producto: number, cantidad: number }[] }} pedidoData
+ * @returns {Promise} Pedido creado con detalles
+ */
+export const createPedido = async (pedidoData) => {
+  const res = await api.post("/api/pedidos", pedidoData);
+  return res.data;
+};
+
+/**
+ * Obtener pedidos del usuario autenticado
+ * @returns {Promise} Lista de pedidos con detalles
+ */
+export const getMisPedidos = async () => {
+  const res = await api.get("/api/pedidos/mis-pedidos");
+  return res.data;
+};
+
 export default api;
+

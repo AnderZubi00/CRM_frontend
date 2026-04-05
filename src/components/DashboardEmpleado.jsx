@@ -18,7 +18,7 @@ function DashboardEmpleado({ user, onLogout }) {
   const content = useMemo(() => {
     switch (section) {
       case "users":
-        return <AdminUsers user={user} />;
+        return <AdminUsers user={user} visibleRoles={[2, 3]} canChangeRoles={false} />;
       case "products":
         return <AdminProducts user={user} onNavigate={setSection} />;
       case "categories":

@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-/* Tema para que Tailwind v4 reconozca las clases de shadcn (bg-primary, border-input, etc.) */
+/* ── Google Fonts: Rubik (headings) + Nunito Sans (body) ── */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&display=swap');
+
+/* ── Tema base shadcn (admin / empleado / público) ── */
 @theme {
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(222 47% 11%);
@@ -49,6 +52,22 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* ── Tienda tokens (used by .tienda-theme) ── */
+    --tienda-bg: #FAFAF9;
+    --tienda-surface: #FFFFFF;
+    --tienda-surface-glass: rgba(255, 255, 255, 0.72);
+    --tienda-text: #0C0A09;
+    --tienda-text-muted: #78716C;
+    --tienda-accent: #CA8A04;
+    --tienda-accent-hover: #A16207;
+    --tienda-accent-light: rgba(202, 138, 4, 0.10);
+    --tienda-border: rgba(28, 25, 23, 0.08);
+    --tienda-border-accent: rgba(202, 138, 4, 0.25);
+    --tienda-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --tienda-shadow-lg: 0 10px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    --tienda-radius: 1rem;
+    --tienda-radius-lg: 1.5rem;
   }
 
   .dark {
@@ -89,6 +108,7 @@
   }
 }
 
+/* ── Global base ── */
 :root {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
@@ -117,7 +137,7 @@ body {
   max-width: none;
 }
 
-/* Animación de entrada para el login */
+/* ── Animación modal login ── */
 @keyframes login-in {
   from {
     opacity: 0;
@@ -128,7 +148,173 @@ body {
     transform: scale(1) translateY(0);
   }
 }
-
 .animate-login-in {
   animation: login-in 0.35s ease-out forwards;
+}
+
+/* ══════════════════════════════════════════════════════
+   TIENDA THEME — solo aplica dentro de .tienda-theme
+   ══════════════════════════════════════════════════════ */
+
+.tienda-theme {
+  font-family: "Nunito Sans", "Inter", system-ui, sans-serif;
+  background: var(--tienda-bg);
+  color: var(--tienda-text);
+}
+
+.tienda-theme h1,
+.tienda-theme h2,
+.tienda-theme h3,
+.tienda-theme h4 {
+  font-family: "Rubik", "Inter", system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Glass card */
+.tienda-glass {
+  background: var(--tienda-surface-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--tienda-border);
+  box-shadow: var(--tienda-shadow);
+}
+
+.tienda-glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid var(--tienda-border);
+  box-shadow: var(--tienda-shadow-lg);
+}
+
+/* Accent button */
+.tienda-btn-accent {
+  background: var(--tienda-accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms ease-out, transform 150ms ease-out, box-shadow 200ms ease-out;
+}
+.tienda-btn-accent:hover {
+  background: var(--tienda-accent-hover);
+  box-shadow: 0 4px 20px rgba(202, 138, 4, 0.3);
+}
+.tienda-btn-accent:active {
+  transform: scale(0.97);
+}
+
+/* Accent outline button */
+.tienda-btn-outline {
+  background: transparent;
+  color: var(--tienda-accent);
+  border: 1.5px solid var(--tienda-accent);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease-out;
+}
+.tienda-btn-outline:hover {
+  background: var(--tienda-accent-light);
+  border-color: var(--tienda-accent-hover);
+}
+
+/* Skeleton loader */
+@keyframes tienda-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.tienda-skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(40 10% 93%) 25%,
+    hsl(40 10% 97%) 50%,
+    hsl(40 10% 93%) 75%
+  );
+  background-size: 200% 100%;
+  animation: tienda-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--tienda-radius);
+}
+
+/* Cart badge pulse */
+@keyframes badge-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.tienda-badge-pop {
+  animation: badge-pop 300ms ease-out;
+}
+
+/* Gold accent divider */
+.tienda-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--tienda-border-accent) 50%,
+    transparent 100%
+  );
+}
+
+/* Overlay for drawers/modals */
+.tienda-overlay {
+  background: rgba(12, 10, 9, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Floating navbar */
+.tienda-navbar-float {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  max-width: 80rem;
+  border-radius: var(--tienda-radius-lg);
+  z-index: 40;
+}
+@media (max-width: 639px) {
+  .tienda-navbar-float {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    border-radius: 0;
+  }
+}
+
+/* Focus ring for accessibility */
+.tienda-theme :focus-visible {
+  outline: 2px solid var(--tienda-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Custom scrollbar */
+.tienda-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.tienda-scroll::-webkit-scrollbar-thumb {
+  background: var(--tienda-border);
+  border-radius: 2px;
+}
+.tienda-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .tienda-skeleton {
+    animation: none;
+  }
+  .tienda-badge-pop {
+    animation: none;
+  }
+  .tienda-btn-accent:active {
+    transform: none;
+  }
 }

@@ -1,6 +1,6 @@
 import Header from './components/Header';
 import Home from './components/Home';
-import VistaProductos from './components/VistaProductos';
+import ClienteLayout from './components/cliente/ClienteLayout';
 import SobreNosotros from './components/SobreNosotros';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -9,25 +9,39 @@ import Login from './components/Login';
 import Registro from './components/Registro';
 import DashboardAdmin from './components/DashboardAdmin';
 import DashboardEmpleado from './components/DashboardEmpleado';
-import DashboardCliente from './components/DashboardCliente';
 import { getCurrentUser, logout, verifyAuth } from "./services/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState('home'); // 'home' o 'registro'
+  const [currentView, setCurrentView] = useState('home');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginInitialCorreo, setLoginInitialCorreo] = useState('');
   const [loginPostRegisterMessage, setLoginPostRegisterMessage] = useState('');
   const [user, setUser] = useState(getCurrentUser());
+
+  // Track where the user was before login, so we can return them there
+  const preLoginView = useRef(null);
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setShowLoginModal(false);
     setLoginInitialCorreo('');
     setLoginPostRegisterMessage('');
-    setCurrentView('dashboard');
+
+    // Clients go to productos (the shop); admin/employee go to dashboard
+    const rol = userData?.id_rol;
+    if (rol === 1 || rol === 2) {
+      setCurrentView('dashboard');
+    } else if (preLoginView.current) {
+      // Return to where they were (e.g. productos/checkout)
+      setCurrentView(preLoginView.current);
+      preLoginView.current = null;
+    } else {
+      setCurrentView('productos');
+    }
   };
+
   useEffect(() => {
     const handleUnauthorized = () => {
       logout();
@@ -37,16 +51,19 @@ function App() {
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
 
-    // Revalidar token al refrescar (F5)
     const token = localStorage.getItem("token");
     if (token) {
       verifyAuth()
         .then((data) => {
-          // Ajusta según lo que devuelva tu /api/auth/verify
-          // Si devuelve { user: {...} }:
           const verifiedUser = data.user ?? data;
           setUser(verifiedUser);
-          setCurrentView("dashboard");
+          const rol = verifiedUser?.id_rol;
+          // Admin/Employee → dashboard; Client → productos (shop)
+          if (rol === 1 || rol === 2) {
+            setCurrentView("dashboard");
+          } else {
+            setCurrentView("productos");
+          }
         })
         .catch(() => {
           handleUnauthorized();
@@ -55,13 +72,13 @@ function App() {
 
     return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
   }, []);
+
   const handleCloseLoginModal = () => {
     setShowLoginModal(false);
     setLoginInitialCorreo('');
     setLoginPostRegisterMessage('');
   };
 
-  /** Tras registro: volver a inicio, abrir login y opcionalmente pre-rellenar correo */
   const handleRegisterSuccess = ({ correo } = {}) => {
     setCurrentView('home');
     setLoginInitialCorreo(typeof correo === 'string' ? correo : '');
@@ -82,34 +99,45 @@ function App() {
     setCurrentView('registro');
   };
 
-  // Si el usuario está logueado, mostrar el dashboard correspondiente a su rol
+  // Open login modal and remember where we were
+  const handleRequestLogin = () => {
+    preLoginView.current = currentView;
+    setShowLoginModal(true);
+  };
+
+  // Admin and Employee get their own full-screen dashboards (no public header)
   if (user && currentView === 'dashboard') {
     const esAdmin = user.id_rol === 1;
     const esEmpleado = user.id_rol === 2;
-    const esCliente = user.id_rol === 3;
 
     if (esAdmin) return <DashboardAdmin user={user} onLogout={handleLogout} />;
     if (esEmpleado) return <DashboardEmpleado user={user} onLogout={handleLogout} />;
-    if (esCliente) return <DashboardCliente user={user} onLogout={handleLogout} />;
   }
 
-  // Vista principal: solo Header (y registro si aplica)
+  // Everyone else (clients, visitors) gets the public layout with Header + Footer
   return (
     <div className="w-full min-w-full">
       <Header
-        onOpenLogin={() => setShowLoginModal(true)}
+        user={user}
+        onOpenLogin={handleRequestLogin}
+        onLogout={handleLogout}
         onNavigate={(view) => setCurrentView(view)}
         currentView={currentView}
       />
 
       {currentView === 'home' && (
         <Home
-          onOpenLogin={() => setShowLoginModal(true)}
+          onOpenLogin={handleRequestLogin}
           onNavigate={(view) => setCurrentView(view)}
         />
       )}
       {currentView === 'productos' && (
-        <VistaProductos onOpenLogin={() => setShowLoginModal(true)} />
+        <ClienteLayout
+          user={user}
+          onLogout={handleLogout}
+          onRequestLogin={handleRequestLogin}
+          hideHeader
+        />
       )}
       {currentView === 'sobre-nosotros' && <SobreNosotros />}
       {currentView === 'contacto' && <Contact />}
@@ -118,8 +146,7 @@ function App() {
         onNavigate={(view) => setCurrentView(view)}
       />
 
-
-      {/* Modal de registro (mismo estilo que login: overlay oscuro + formulario centrado) */}
+      {/* Modal de registro */}
       {currentView === 'registro' && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"

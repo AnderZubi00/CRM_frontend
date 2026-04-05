@@ -3,7 +3,7 @@ import { getUsers, createUser } from "@/services/api";
 import api, { getCurrentUser } from "@/services/api";
 import PageHeader from "@/components/shell/PageHeader";
 
-function AdminUsers() {
+function AdminUsers({ visibleRoles = [1, 2, 3], canChangeRoles = true }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
@@ -168,6 +168,7 @@ function AdminUsers() {
     setNombre(normalized.nombre);
     setApellido(normalized.apellido);
     setTelefono(normalized.telefono);
+    setIdRol(String(normalized.id_rol ?? user?.id_rol ?? "3"));
 
     setFormError("");
     setModalMode("edit");
@@ -189,6 +190,7 @@ function AdminUsers() {
         nombre: nombre.trim() || null,
         apellido: apellido.trim() || null,
         telefono: telefono.trim() || null,
+        id_rol: Number(idRol),
       };
 
       if (contrasena.trim()) {
@@ -259,7 +261,7 @@ function AdminUsers() {
     { rol: 1, title: "Administradores" },
     { rol: 2, title: "Empleados" },
     { rol: 3, title: "Clientes" },
-  ];
+  ].filter((g) => visibleRoles.includes(g.rol));
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -433,7 +435,7 @@ function AdminUsers() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {modalMode === "edit"
-                    ? "Solo puedes modificar nombre, apellido, teléfono y opcionalmente la contraseña."
+                    ? "Podés modificar el rol, los datos personales y opcionalmente la contraseña."
                     : "Crea administradores o clientes. Para empleados, usa la sección Empleados."}
                 </p>
               </div>
@@ -525,22 +527,26 @@ function AdminUsers() {
                 </div>
               </div>
 
-              {modalMode === "create" && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      Rol
-                    </label>
-                    <select
-                      value={idRol}
-                      onChange={(e) => setIdRol(e.target.value)}
-                      className="w-full border rounded-lg px-3 py-2 bg-background"
-                      disabled={saving}
-                    >
-                      <option value="1">Administrador</option>
-                      <option value="3">Cliente</option>
-                    </select>
-                  </div>
+              {canChangeRoles && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">
+                    Rol
+                  </label>
+                  <select
+                    value={idRol}
+                    onChange={(e) => setIdRol(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 bg-background"
+                    disabled={saving}
+                  >
+                    <option value="1">Administrador</option>
+                    {modalMode === "edit" && <option value="2">Empleado</option>}
+                    <option value="3">Cliente</option>
+                  </select>
+                  {modalMode === "create" && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Para crear empleados, usa la sección Empleados.
+                    </p>
+                  )}
                 </div>
               )}
 
