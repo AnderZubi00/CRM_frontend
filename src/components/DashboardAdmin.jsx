@@ -7,6 +7,7 @@ import AdminReports from "./admin/AdminReports";
 import AdminEmployees from "./admin/AdminEmployees";
 import AdminCategories from "./admin/AdminCategories";
 import AdminSuppliers from "./admin/AdminSuppliers";
+import AdminConsultas from "./admin/AdminConsultas";
 
 
 function DashboardAdmin({ user, onLogout }) {
@@ -31,6 +32,8 @@ function DashboardAdmin({ user, onLogout }) {
         return <AdminEmployees />;
       case "reports":
         return <AdminReports user={user} />;
+      case "consultas":
+        return <AdminConsultas user={user} />;
       case "home":
       default:
         return <AdminHome user={user} onNavigate={setSection} />;

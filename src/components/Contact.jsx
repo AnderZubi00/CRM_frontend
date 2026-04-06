@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LazyMotion, domAnimation, m as Motion, useReducedMotion } from "framer-motion";
+import { createConsulta } from "../services/api";
 
 // ── Floating label input ──────────────────────────────────────────────────────
 function FloatField({ id, name, label, type = "text", value, onChange, required, autoComplete }) {
@@ -58,10 +59,22 @@ const ASUNTOS = [
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
-function Contact({ onNavigate }) {
+function Contact({ onNavigate, user, onRequestLogin }) {
   const reduceMotion = useReducedMotion();
-  const [form, setForm] = useState({ nombre: "", empresa: "", email: "", asunto: "", mensaje: "" });
+
+  const nombreInicial = user
+    ? [user.nombre, user.apellido].filter(Boolean).join(" ") || ""
+    : "";
+
+  const [form, setForm] = useState({
+    nombre: nombreInicial,
+    empresa: "",
+    email: user?.correo || "",
+    asunto: "",
+    mensaje: "",
+  });
   const [status, setStatus] = useState("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const MAX_CHARS = 600;
 
   const handleChange = (e) =>
@@ -69,14 +82,35 @@ function Contact({ onNavigate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      onRequestLogin?.();
+      return;
+    }
     setStatus("loading");
-    await new Promise((r) => setTimeout(r, 1100));
-    setStatus("success");
+    setErrorMsg("");
+    try {
+      await createConsulta({
+        asunto: form.asunto,
+        mensaje: form.mensaje,
+        telefono: undefined,
+      });
+      setStatus("success");
+    } catch (err) {
+      setErrorMsg(err?.response?.data?.error || "No se pudo enviar la consulta. Intenta de nuevo.");
+      setStatus("idle");
+    }
   };
 
   const reset = () => {
     setStatus("idle");
-    setForm({ nombre: "", empresa: "", email: "", asunto: "", mensaje: "" });
+    setErrorMsg("");
+    setForm({
+      nombre: nombreInicial,
+      empresa: "",
+      email: user?.correo || "",
+      asunto: "",
+      mensaje: "",
+    });
   };
 
   return (
@@ -231,8 +265,8 @@ function Contact({ onNavigate }) {
                   Consulta recibida
                 </h2>
                 <p className="text-slate-500 text-sm leading-relaxed mb-3">
-                  Un especialista revisará tu consulta y se pondrá en contacto con vos a{" "}
-                  <span className="font-medium text-slate-700">{form.email}</span> en menos de 24 horas hábiles.
+                  Un especialista revisará tu consulta y se pondrá en contacto contigo a{" "}
+                  <span className="font-medium text-slate-700">{user?.correo || form.email}</span> en menos de 24 horas hábiles.
                 </p>
                 {form.asunto === "cotizacion" && (
                   <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-6">
@@ -260,30 +294,63 @@ function Contact({ onNavigate }) {
                   Formulario de contacto
                 </p>
 
+                {/* Banner de login requerido */}
+                {!user && (
+                  <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-amber-800 mb-0.5">Inicia sesión para enviar una consulta</p>
+                      <p className="text-xs text-amber-700 mb-3">Necesitas una cuenta para que podamos hacer seguimiento de tu consulta y responderte correctamente.</p>
+                      <button
+                        type="button"
+                        onClick={() => onRequestLogin?.()}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700"
+                      >
+                        Iniciar sesión
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+
+                {/* Mensaje de error */}
+                {errorMsg && (
+                  <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                    <p className="text-xs text-red-700">{errorMsg}</p>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-8">
 
-                  {/* Nombre + Email */}
-                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-8">
-                    <FloatField
-                      id="nombre"
-                      name="nombre"
-                      label="Nombre completo"
-                      value={form.nombre}
-                      onChange={handleChange}
-                      required
-                      autoComplete="name"
-                    />
-                    <FloatField
-                      id="email"
-                      name="email"
-                      label="Email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
+                  {/* Nombre + Email (solo visibles si no hay usuario; si hay sesión estos datos vienen del perfil) */}
+                  {!user && (
+                    <div className="grid sm:grid-cols-2 gap-x-6 gap-y-8">
+                      <FloatField
+                        id="nombre"
+                        name="nombre"
+                        label="Nombre completo"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        required
+                        autoComplete="name"
+                      />
+                      <FloatField
+                        id="email"
+                        name="email"
+                        label="Email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                  )}
 
                   {/* Empresa (opcional) */}
                   <FloatField
@@ -369,8 +436,8 @@ function Contact({ onNavigate }) {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={status === "loading"}
-                      className="group w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2.5 text-sm"
+                      disabled={status === "loading" || !user}
+                      className="group w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2.5 text-sm"
                     >
                       {status === "loading" ? (
                         <>

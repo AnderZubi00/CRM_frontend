@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { id: "Suppliers", label: "Proveedores", icon: "suppliers" },
   { id: "employees", label: "Empleados", icon: "employees" },
   { id: "reports", label: "Reportes", icon: "reports" },
+  { id: "consultas", label: "Consultas", icon: "consultas" },
 ];
 
 function AdminLayout({

@@ -141,7 +141,13 @@ function App() {
         />
       )}
       {currentView === 'sobre-nosotros' && <SobreNosotros onNavigate={(view) => setCurrentView(view)} />}
-      {currentView === 'contacto' && <Contact onNavigate={(view) => setCurrentView(view)} />}
+      {currentView === 'contacto' && (
+        <Contact
+          onNavigate={(view) => setCurrentView(view)}
+          user={user}
+          onRequestLogin={handleRequestLogin}
+        />
+      )}
       {currentView === 'mis-pedidos' && <MisPedidos user={user} onNavigate={(view) => setCurrentView(view)} onOpenLogin={handleRequestLogin} />}
       {currentView === 'politica-privacidad' && <Politica />}
       <Footer

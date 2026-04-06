@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { id: "products", label: "Productos", icon: "products" },
   { id: "categories", label: "Categorías", icon: "categories" },
   { id: "Suppliers", label: "Proveedores", icon: "suppliers" },
+  { id: "consultas", label: "Consultas", icon: "consultas" },
 ];
 
 function EmployeeLayout({ user, onLogout, section, onSectionChange, children }) {

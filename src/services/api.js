@@ -265,5 +265,47 @@ export const getAllPedidos = async () => {
   return res.data;
 };
 
+// ==================== CONSULTAS ====================
+
+/**
+ * Enviar una consulta (usuario autenticado)
+ * @param {{ asunto: string, mensaje: string, telefono?: string }} data
+ * @returns {Promise} Consulta creada
+ */
+export const createConsulta = async (data) => {
+  const res = await api.post("/api/consultas", data);
+  return res.data;
+};
+
+/**
+ * Obtener todas las consultas (solo admin/empleado)
+ * @returns {Promise} Lista de consultas
+ */
+export const getConsultas = async () => {
+  const res = await api.get("/api/consultas");
+  return res.data;
+};
+
+/**
+ * Actualizar el estado de una consulta (solo admin/empleado)
+ * @param {number} id - ID de la consulta
+ * @param {'pendiente'|'vista'|'resuelta'} estado
+ * @returns {Promise} Consulta actualizada
+ */
+export const updateConsultaEstado = async (id, estado) => {
+  const res = await api.patch(`/api/consultas/${id}/estado`, { estado });
+  return res.data;
+};
+
+/**
+ * Eliminar una consulta (solo admin)
+ * @param {number} id - ID de la consulta
+ * @returns {Promise} Confirmación
+ */
+export const deleteConsulta = async (id) => {
+  const res = await api.delete(`/api/consultas/${id}`);
+  return res.data;
+};
+
 export default api;
 

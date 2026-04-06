@@ -5,6 +5,7 @@ import AdminUsers from "./admin/AdminUsers";
 import AdminProducts from "./admin/AdminProducts";
 import AdminCategories from "./admin/AdminCategories";
 import AdminSuppliers from "./admin/AdminSuppliers";
+import AdminConsultas from "./admin/AdminConsultas";
 
 function DashboardEmpleado({ user, onLogout }) {
   const [section, setSection] = useState(() => {
@@ -25,6 +26,8 @@ function DashboardEmpleado({ user, onLogout }) {
         return <AdminCategories />;
       case "Suppliers":
         return <AdminSuppliers />;
+      case "consultas":
+        return <AdminConsultas user={user} />;
       case "home":
       default:
         return (
