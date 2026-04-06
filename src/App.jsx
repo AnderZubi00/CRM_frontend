@@ -9,6 +9,7 @@ import Login from './components/Login';
 import Registro from './components/Registro';
 import DashboardAdmin from './components/DashboardAdmin';
 import DashboardEmpleado from './components/DashboardEmpleado';
+import MisPedidos from './components/cliente/MisPedidos';
 import { getCurrentUser, logout, verifyAuth } from "./services/api";
 import { useEffect, useState, useRef } from "react";
 import './App.css';
@@ -139,8 +140,9 @@ function App() {
           hideHeader
         />
       )}
-      {currentView === 'sobre-nosotros' && <SobreNosotros />}
-      {currentView === 'contacto' && <Contact />}
+      {currentView === 'sobre-nosotros' && <SobreNosotros onNavigate={(view) => setCurrentView(view)} />}
+      {currentView === 'contacto' && <Contact onNavigate={(view) => setCurrentView(view)} />}
+      {currentView === 'mis-pedidos' && <MisPedidos user={user} onNavigate={(view) => setCurrentView(view)} onOpenLogin={handleRequestLogin} />}
       {currentView === 'politica-privacidad' && <Politica />}
       <Footer
         onNavigate={(view) => setCurrentView(view)}

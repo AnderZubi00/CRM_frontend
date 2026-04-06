@@ -43,6 +43,11 @@ function Header({ user, onOpenLogin, onLogout, onNavigate, currentView }) {
             <NavItem active={currentView === "contacto"} onClick={() => onNavigate?.("contacto")}>
               Contacto
             </NavItem>
+            {user && (
+              <NavItem active={currentView === "mis-pedidos"} onClick={() => onNavigate?.("mis-pedidos")}>
+                Mis pedidos
+              </NavItem>
+            )}
           </nav>
 
           {/* User actions */}
