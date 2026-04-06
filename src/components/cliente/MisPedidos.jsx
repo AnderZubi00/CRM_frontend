@@ -12,11 +12,16 @@ function calcTotal(detalles) {
   return detalles.reduce((acc, d) => acc + d.cantidad * parseFloat(d.precio_unitario), 0);
 }
 
+function nroFactura(id, fecha) {
+  const year = new Date(fecha).getFullYear();
+  return `FAC-${year}-${String(id).padStart(5, "0")}`;
+}
+
 const ESTADO_STYLES = {
-  pendiente:   { dot: "bg-amber-400",  pill: "bg-amber-50 text-amber-700 border-amber-200",  label: "Pendiente" },
-  en_proceso:  { dot: "bg-blue-500",   pill: "bg-blue-50 text-blue-700 border-blue-200",     label: "En proceso" },
-  enviado:     { dot: "bg-indigo-500", pill: "bg-indigo-50 text-indigo-700 border-indigo-200", label: "Enviado" },
-  completado:  { dot: "bg-green-500",  pill: "bg-green-50 text-green-700 border-green-200",  label: "Completado" },
+  pendiente:  { dot: "bg-amber-400",  pill: "bg-amber-50 text-amber-700 border-amber-200",   label: "Pendiente" },
+  en_proceso: { dot: "bg-blue-500",   pill: "bg-blue-50 text-blue-700 border-blue-200",      label: "En proceso" },
+  enviado:    { dot: "bg-indigo-500", pill: "bg-indigo-50 text-indigo-700 border-indigo-200",label: "Enviado" },
+  completado: { dot: "bg-green-500",  pill: "bg-green-50 text-green-700 border-green-200",   label: "Completado" },
 };
 
 function EstadoBadge({ estado }) {
@@ -27,6 +32,158 @@ function EstadoBadge({ estado }) {
       {s.label}
     </span>
   );
+}
+
+// ── Generador de HTML de factura ──────────────────────────────────────────────
+function generarFacturaHTML(pedido, user) {
+  const total = calcTotal(pedido.detalles);
+  const baseImponible = total / 1.21;
+  const iva = total - baseImponible;
+  const numFactura = nroFactura(pedido.id_pedido, pedido.fecha);
+  const fecha = formatFecha(pedido.fecha);
+  const nombreCliente = [user?.nombre, user?.apellido].filter(Boolean).join(" ") || user?.correo || "Cliente";
+
+  const filasProductos = pedido.detalles.map((d) => {
+    const subtotal = d.cantidad * parseFloat(d.precio_unitario);
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b">${d.nombre_producto}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#475569;text-align:center">${d.cantidad}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#475569;text-align:right">${parseFloat(d.precio_unitario).toLocaleString("es-ES",{style:"currency",currency:"EUR"})}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b;font-weight:600;text-align:right">${subtotal.toLocaleString("es-ES",{style:"currency",currency:"EUR"})}</td>
+      </tr>`;
+  }).join("");
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factura ${numFactura} — ANCAMI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8fafc; color: #1e293b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .wrap { max-width: 780px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 40px rgba(0,0,0,0.08); }
+    .head { background: #0f172a; padding: 40px 48px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-box { width: 40px; height: 40px; background: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .logo-text { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .head-right { text-align: right; }
+    .factura-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin-bottom: 4px; }
+    .factura-num { font-size: 20px; font-weight: 700; color: #fff; }
+    .body { padding: 40px 48px; }
+    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; }
+    .meta-block h4 { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 8px; }
+    .meta-block p { font-size: 13px; color: #334155; line-height: 1.6; }
+    .meta-block .main { font-size: 15px; font-weight: 600; color: #0f172a; }
+    .divider { height: 1px; background: #e2e8f0; margin-bottom: 28px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    thead tr { background: #f8fafc; }
+    thead th { padding: 10px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; text-align: left; border-bottom: 2px solid #e2e8f0; }
+    thead th:last-child, thead th:nth-child(3), thead th:nth-child(2) { text-align: right; }
+    thead th:nth-child(2) { text-align: center; }
+    .totals { margin-left: auto; width: 280px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #475569; }
+    .totals-row.iva { border-top: 1px solid #f1f5f9; padding-top: 10px; }
+    .totals-row.total { border-top: 2px solid #0f172a; padding-top: 12px; margin-top: 4px; font-size: 16px; font-weight: 700; color: #0f172a; }
+    .foot { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 48px; display: flex; justify-content: space-between; align-items: center; }
+    .foot p { font-size: 11px; color: #94a3b8; }
+    .btn-print { background: #0f172a; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .btn-print:hover { background: #1e293b; }
+    .estado-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    @media print {
+      body { background: #fff; }
+      .wrap { box-shadow: none; margin: 0; border-radius: 0; }
+      .no-print { display: none !important; }
+      .foot { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Cabecera -->
+    <div class="head">
+      <div class="logo">
+        <div class="logo-box">A</div>
+        <span class="logo-text">ANCAMI</span>
+      </div>
+      <div class="head-right">
+        <p class="factura-label">Factura</p>
+        <p class="factura-num">${numFactura}</p>
+      </div>
+    </div>
+
+    <!-- Cuerpo -->
+    <div class="body">
+      <div class="meta">
+        <div class="meta-block">
+          <h4>Facturado a</h4>
+          <p class="main">${nombreCliente}</p>
+          <p>${user?.correo || ""}</p>
+          ${user?.telefono ? `<p>${user.telefono}</p>` : ""}
+        </div>
+        <div class="meta-block" style="text-align:right">
+          <h4>Detalles</h4>
+          <p><strong>Fecha:</strong> ${fecha}</p>
+          <p><strong>Pedido:</strong> #${pedido.id_pedido}</p>
+          <p style="margin-top:6px"><span class="estado-pill">${ESTADO_STYLES[pedido.estado]?.label ?? "Pendiente"}</span></p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Tabla de productos -->
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50%">Descripción</th>
+            <th>Cant.</th>
+            <th>Precio unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filasProductos}
+        </tbody>
+      </table>
+
+      <!-- Totales -->
+      <div class="totals">
+        <div class="totals-row">
+          <span>Base imponible</span>
+          <span>${baseImponible.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
+        </div>
+        <div class="totals-row iva">
+          <span>IVA (21%)</span>
+          <span>${iva.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
+        </div>
+        <div class="totals-row total">
+          <span>Total</span>
+          <span>${total.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie -->
+    <div class="foot">
+      <p>ANCAMI · España · contacto@ancami.es · Emitida el ${fecha}</p>
+      <button class="btn-print no-print" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-16h4a1 1 0 011 1v3H7V4a1 1 0 011-1h4z"/></svg>
+        Imprimir / Guardar PDF
+      </button>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function abrirFactura(pedido, user) {
+  const html = generarFacturaHTML(pedido, user);
+  const win = window.open("", "_blank", "width=860,height=700,scrollbars=yes");
+  if (!win) return;
+  win.document.write(html);
+  win.document.close();
+  win.focus();
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -40,13 +197,11 @@ function SkeletonCard() {
         </div>
         <div className="h-6 w-20 bg-slate-100 rounded-full" />
       </div>
-      <div className="space-y-3 mt-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-slate-100 rounded-lg flex-shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-40 bg-slate-100 rounded" />
-            <div className="h-3 w-24 bg-slate-100 rounded" />
-          </div>
+      <div className="flex items-center gap-3 mt-4">
+        <div className="w-10 h-10 bg-slate-100 rounded-lg flex-shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-40 bg-slate-100 rounded" />
+          <div className="h-3 w-24 bg-slate-100 rounded" />
         </div>
       </div>
     </div>
@@ -54,7 +209,7 @@ function SkeletonCard() {
 }
 
 // ── PedidoCard ────────────────────────────────────────────────────────────────
-function PedidoCard({ pedido }) {
+function PedidoCard({ pedido, user }) {
   const [open, setOpen] = useState(true);
   const total = calcTotal(pedido.detalles);
   const baseURL = getApiBaseURL();
@@ -64,7 +219,7 @@ function PedidoCard({ pedido }) {
       {/* Header */}
       <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-base font-bold text-slate-900" style={{ fontFamily: "Rubik, sans-serif" }}>
               Pedido #{pedido.id_pedido}
             </span>
@@ -72,10 +227,25 @@ function PedidoCard({ pedido }) {
           </div>
           <span className="text-xs text-slate-500">{formatFecha(pedido.fecha)}</span>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-          <span className="text-sm font-semibold text-slate-700">
+
+        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+          <span className="text-sm font-semibold text-slate-700 hidden sm:block">
             {total.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
           </span>
+
+          {/* Botón factura */}
+          <button
+            onClick={() => abrirFactura(pedido, user)}
+            title="Ver factura"
+            className="inline-flex items-center gap-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5 flex-shrink-0">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Factura
+          </button>
+
+          {/* Toggle */}
           <button
             onClick={() => setOpen((o) => !o)}
             className="w-7 h-7 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors duration-150 cursor-pointer"
@@ -101,7 +271,6 @@ function PedidoCard({ pedido }) {
             const subtotal = d.cantidad * parseFloat(d.precio_unitario);
             return (
               <div key={d.id_detalle} className="flex items-center gap-4 px-6 py-4">
-                {/* Thumbnail */}
                 <div className="w-12 h-12 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {imgSrc ? (
                     <img src={imgSrc} alt={d.nombre_producto} className="w-full h-full object-cover" />
@@ -111,14 +280,12 @@ function PedidoCard({ pedido }) {
                     </svg>
                   )}
                 </div>
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">{d.nombre_producto}</p>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {d.cantidad} × {parseFloat(d.precio_unitario).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
                   </p>
                 </div>
-                {/* Subtotal */}
                 <span className="text-sm font-semibold text-slate-700 flex-shrink-0">
                   {subtotal.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
                 </span>
@@ -126,12 +293,16 @@ function PedidoCard({ pedido }) {
             );
           })}
 
-          {/* Footer total */}
-          <div className="flex justify-end items-center gap-2 px-6 py-3 bg-slate-50">
-            <span className="text-xs text-slate-500">Total del pedido</span>
-            <span className="text-sm font-bold text-slate-900">
+          <div className="flex justify-between items-center px-6 py-3 bg-slate-50">
+            <span className="text-xs text-slate-400 sm:hidden">
               {total.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
             </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-xs text-slate-500">Total del pedido</span>
+              <span className="text-sm font-bold text-slate-900">
+                {total.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -142,7 +313,7 @@ function PedidoCard({ pedido }) {
 // ── Main component ────────────────────────────────────────────────────────────
 function MisPedidos({ user, onNavigate, onOpenLogin }) {
   const [pedidos, setPedidos] = useState([]);
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
 
   const load = async () => {
     setStatus("loading");
@@ -160,7 +331,6 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
     else setStatus("success");
   }, [user]);
 
-  // ── Sin sesión ──
   if (!user) {
     return (
       <div className="bg-slate-50 min-h-[60vh] flex items-center justify-center px-6">
@@ -173,9 +343,7 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
           <h2 className="text-lg font-bold text-slate-900 mb-2" style={{ fontFamily: "Rubik, sans-serif" }}>
             Iniciá sesión para ver tus pedidos
           </h2>
-          <p className="text-slate-500 text-sm mb-6">
-            Necesitás una cuenta para acceder al historial de pedidos.
-          </p>
+          <p className="text-slate-500 text-sm mb-6">Necesitás una cuenta para acceder al historial de pedidos.</p>
           <button
             onClick={() => onOpenLogin?.()}
             className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200 cursor-pointer text-sm"
@@ -190,7 +358,6 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
   return (
     <div className="bg-slate-50 min-h-screen">
 
-      {/* ── Hero dark ── */}
       <section className="bg-slate-900 px-6 md:px-12 py-14">
         <div className="max-w-4xl mx-auto">
           <nav className="flex items-center gap-2 text-xs text-slate-600 mb-6">
@@ -214,19 +381,14 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
         </div>
       </section>
 
-      {/* ── Contenido ── */}
       <section className="max-w-4xl mx-auto px-6 md:px-12 py-10">
 
-        {/* Loading */}
         {status === "loading" && (
           <div className="space-y-4">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+            <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
         )}
 
-        {/* Error */}
         {status === "error" && (
           <div className="text-center py-16">
             <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-4">
@@ -236,16 +398,12 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
             </div>
             <p className="text-slate-700 font-medium mb-1">No pudimos cargar tus pedidos</p>
             <p className="text-slate-500 text-sm mb-5">Verificá tu conexión e intentalo de nuevo.</p>
-            <button
-              onClick={load}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer bg-transparent border-none"
-            >
+            <button onClick={load} className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer bg-transparent border-none">
               Reintentar
             </button>
           </div>
         )}
 
-        {/* Empty */}
         {status === "success" && pedidos.length === 0 && (
           <div className="text-center py-16">
             <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto mb-5 shadow-sm">
@@ -256,9 +414,7 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
             <h2 className="text-lg font-bold text-slate-900 mb-2" style={{ fontFamily: "Rubik, sans-serif" }}>
               Todavía no tenés pedidos
             </h2>
-            <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
-              Explorá el catálogo y hacé tu primera compra.
-            </p>
+            <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">Explorá el catálogo y hacé tu primera compra.</p>
             <button
               onClick={() => onNavigate?.("productos")}
               className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200 cursor-pointer text-sm"
@@ -268,11 +424,10 @@ function MisPedidos({ user, onNavigate, onOpenLogin }) {
           </div>
         )}
 
-        {/* Lista */}
         {status === "success" && pedidos.length > 0 && (
           <div className="space-y-4">
             {pedidos.map((p) => (
-              <PedidoCard key={p.id_pedido} pedido={p} />
+              <PedidoCard key={p.id_pedido} pedido={p} user={user} />
             ))}
           </div>
         )}
